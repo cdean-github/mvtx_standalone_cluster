@@ -30,3 +30,26 @@
 *.exe
 *.out
 *.app
+
+# ROOT, condor and F4A stuff
+stdout*
+stderr*
+*.swp
+*.root
+build/
+macros/dstSet_*
+macros/condor
+*.txt
+Makefile.in
+*.m4
+autom4te.cache/
+autom4te.cache/
+config.guess
+config.sub
+configure
+depcomp
+install-sh
+ltmain.sh
+missing
+condorJob/
+*.out

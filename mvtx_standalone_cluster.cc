@@ -26,6 +26,9 @@ int mvtx_standalone_cluster::Init(PHCompositeNode *topNode)
   outTree->SetAutoSave(-5e6);
 
   outTree->Branch("event", &event, "event/I");
+  outTree->Branch("strobe_BCO", &strobe_BCO, "strobe_BCO/I");
+  outTree->Branch("L1_BCOs", &L1_BCOs);
+  outTree->Branch("numberL1s", &numberL1s, "numberL1s/I");
   outTree->Branch("layer", &layer, "layer/I");
   outTree->Branch("stave", &stave, "stave/I");
   outTree->Branch("chip", &chip, "chip/I");
@@ -80,7 +83,26 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  event = 0;
+  mvtx_event_header = findNode::getClass<MvtxEventInfov2>(topNode, "MVTXEVENTHEADER");
+  if (!mvtx_event_header)
+  {
+    std::cout << __FILE__ << "::" << __func__ << " - MVTXEVENTHEADER missing, doing nothing." << std::endl;
+    exit(1);
+  }
+
+  std::set<uint64_t> strobeList = mvtx_event_header->get_strobe_BCOs();
+  for (auto iterStrobe = strobeList.begin(); iterStrobe != strobeList.end(); ++iterStrobe)
+  { 
+    std::set<uint64_t> l1List = mvtx_event_header->get_L1_BCO_from_strobe_BCO(*iterStrobe);
+    for (auto iterL1 = l1List.begin(); iterL1 != l1List.end(); ++iterL1)
+    {
+      L1_BCOs.push_back(*iterL1); 
+    }
+  }
+
+  event = f4aCounter;
+  strobe_BCO = mvtx_event_header->get_strobe_BCO();
+  numberL1s = mvtx_event_header->get_number_L1s();
   layer = 0;
   stave = 0;
   chip = 0;
@@ -134,6 +156,7 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
     }
   }
 
+  L1_BCOs.clear();
   ++f4aCounter;
 
   return Fun4AllReturnCodes::EVENT_OK;

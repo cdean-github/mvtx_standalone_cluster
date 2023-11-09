@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <vector>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -16,6 +17,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/MvtxEventInfov2.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
@@ -76,12 +78,16 @@ class mvtx_standalone_cluster : public SubsysReco
   TrkrClusterContainer *trktClusterContainer = nullptr;
   ActsGeometry *actsGeom = nullptr;
   PHG4CylinderGeomContainer *geantGeom;
+  MvtxEventInfov2* mvtx_event_header = nullptr;
 
   TFile* outFile = nullptr;
   TTree* outTree = nullptr;
   std::string outFileName = "outputClusters.root";
 
   int event = 0;
+  int strobe_BCO = 0;
+  std::vector<int> L1_BCOs;
+  int numberL1s = 0;
   int layer = 0;
   int stave = 0;
   int chip = 0;

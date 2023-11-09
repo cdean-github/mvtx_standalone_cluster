@@ -42,17 +42,6 @@ void Fun4All_tester(const std::string file = "/sphenix/u/ycmorales/work/sphenix/
   // 64 bit timestamp
   rc->set_uint64Flag("TIMESTAMP", CDB::timestamp);
 
- /*
-  pair<int, int> runseg = Fun4AllUtils::GetRunSegment(outputFile);
-  int runnumber = runseg.first;
-  int segment = runseg.second;
-  if (runnumber != 0) 
-  {
-    rc->set_IntFlag("RUNNUMBER", runnumber);
-    Fun4AllSyncManager *syncman = se->getSyncManager();
-    syncman->SegmentNumber(segment);
-  }
-*/
   MvtxCombinedRawDataDecoder *myUnpacker = new MvtxCombinedRawDataDecoder();
   myUnpacker->Verbosity(0);
   se->registerSubsystem(myUnpacker);
@@ -74,7 +63,7 @@ void Fun4All_tester(const std::string file = "/sphenix/u/ycmorales/work/sphenix/
   Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", "outputDST.root");
   se->registerOutputManager(out);
  
-  se->run(100);
+  se->run(0);
 
   se->End();
   delete se;

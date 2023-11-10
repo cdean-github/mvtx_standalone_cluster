@@ -85,7 +85,7 @@ class mvtx_standalone_cluster : public SubsysReco
   std::string outFileName = "outputClusters.root";
 
   int event = 0;
-  int strobe_BCO = 0;
+  std::vector<int> strobe_BCOs;
   std::vector<int> L1_BCOs;
   int numberL1s = 0;
   int layer = 0;

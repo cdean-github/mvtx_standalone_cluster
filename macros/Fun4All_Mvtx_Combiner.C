@@ -114,7 +114,7 @@ void Fun4All_Mvtx_Combiner(int nEvents = 0,
     std::string clusterFileName = "outputClusters_" + run_number + ".root"; 
     myTester->writeFile(clusterFileName);
     myTester->writeEventDisplays(true);
-    myTester->setEventDisplayPath("/gpfs/mnt/gpfs02/sphenix/user/cdean/public/MVTX_run24_cosmics_fun4AllDecoder");
+    myTester->setEventDisplayPath(".");
     se->registerSubsystem(myTester);
   }
 

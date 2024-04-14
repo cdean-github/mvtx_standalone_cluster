@@ -20,7 +20,6 @@ libmvtxstandalonecluster_la_SOURCES = \
   mvtx_standalone_cluster.cc
 
 libmvtxstandalonecluster_la_LIBADD = \
-  -lffaobjects \
   -lphool \
   -ltrack_io \
   -lg4detectors \

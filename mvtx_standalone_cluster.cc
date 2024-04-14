@@ -6,6 +6,7 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/recoConsts.h>
 
 #include <boost/format.hpp>
 #include <boost/math/special_functions/sign.hpp>
@@ -54,11 +55,8 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
 {
   PHNodeIterator dstiter(topNode);
 
-  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-  if (evtHeader)
-  {
-    m_runNumber = evtHeader->get_RunNumber();
-  }
+  recoConsts *rc = recoConsts::instance();
+  m_runNumber = rc->get_IntFlag("RUNNUMBER");
 
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)

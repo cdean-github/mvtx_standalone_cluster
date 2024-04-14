@@ -69,7 +69,19 @@ class mvtx_standalone_cluster : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  void event_file_start(std::ofstream &jason_file_header, std::string date, int runid, int bco);
+
+  void event_file_trailer(std::ofstream &json_file_trailer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+
   void writeFile( const std::string &file ){ outFileName = file; }
+
+  void writeEventDisplays( bool value ) { m_write_evt_display = value; }
+
+  void setEventDisplayPath( std::string path ) { m_evt_display_path = path; }
+
+  void setMinClusters( unsigned int value ) { m_min_clusters = value; }
+
+  void setRunDate ( std::string date ) { m_run_date = date; }
 
  private:
   int f4aCounter = 0; 
@@ -84,6 +96,7 @@ class mvtx_standalone_cluster : public SubsysReco
   TTree* outTree = nullptr;
   std::string outFileName = "outputClusters.root";
 
+  int m_runNumber = 0;
   int event = 0;
   std::vector<int> strobe_BCOs;
   std::vector<int> L1_BCOs;
@@ -101,6 +114,11 @@ class mvtx_standalone_cluster : public SubsysReco
   float clusZ = 0.;
   float clusPhi = 0.;
   unsigned int clusSize = 0;
+
+  bool m_write_evt_display = false;
+  std::string m_evt_display_path = ".";
+  unsigned int m_min_clusters = 6;
+  std::string m_run_date = "2024-04-09";
 };
 
 #endif // MVTXSTANDALONECLUSTER_H

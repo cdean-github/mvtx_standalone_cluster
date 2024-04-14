@@ -53,3 +53,4 @@ ltmain.sh
 missing
 condorJob/
 *.out
+*.list

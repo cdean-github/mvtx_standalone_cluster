@@ -20,6 +20,9 @@ export ROOT_INCLUDE_PATH=$MYINSTALL/include:$ROOT_INCLUDE_PATH
 
 source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
 
+fileFinderPath=mvtx_standalone
+inputListPath=${fileFinderPath}/input_lists
+
 simpleRunNumber=$1
 runNumber=$(printf "%08d" $1)
 nEvents=0
@@ -27,7 +30,15 @@ if [[ "$2" != "" ]]; then
     nEvents="$2"
 fi
 
-echo running: runCombiner.sh
-sh mvtx_makelist.sh $simpleRunNumber
-root.exe -q -b Fun4All_Mvtx_Combiner.C\($nEvents,\"mvtx-flx0_${runNumber}.list\",\"mvtx-flx1_${runNumber}.list\",\"mvtx-flx2_${runNumber}.list\",\"mvtx-flx3_${runNumber}.list\",\"mvtx-flx4_${runNumber}.list\",\"mvtx-flx5_${runNumber}.list\"\)
+mvtxInputFiles="{"
+for i in {0..5}
+do
+  mvtxInputFiles+="\"${inputListPath}/mvtx${i}_${runNumber}.list\","
+done
+mvtxInputFiles=${mvtxInputFiles::-1}
+mvtxInputFiles+="}"
+
+echo running: runCombiner_MVTX_only.sh 
+sh ${fileFinderPath}/mvtx_makelist.sh $simpleRunNumber
+root.exe -q -b Fun4All_Mvtx_Combiner.C\($nEvents,${mvtxInputFiles}\)
 echo Script done

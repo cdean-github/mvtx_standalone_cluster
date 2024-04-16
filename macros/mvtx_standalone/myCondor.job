@@ -5,8 +5,5 @@ PeriodicHold       = (NumJobStarts>=1 && JobStatus == 1)
 request_memory     = 6GB
 Priority           = 20
 job_lease_duration = 3600
-Arguments          = 39207
-Output             = $(initialDir)/clustering-$(Arguments).out
-Error              = $(initialDir)/clustering-$(Arguments).err
-Log                = $(initialDir)/clustering-$(Arguments).log
-Queue
+Arguments          = $(runNumber) 
+Queue runNumber from run.list

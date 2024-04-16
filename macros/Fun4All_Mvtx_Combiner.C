@@ -16,7 +16,7 @@
 #include <Trkr_Reco.C>
 #include <Trkr_RecoInit.C>
 #include "G4Setup_sPHENIX.C"
-#include <mvtx_standalone_cluster/mvtx_standalone_cluster.h>
+#include <event_display_maker/mvtx_standalone_cluster.h>
 
 #include <phool/recoConsts.h>
 
@@ -24,7 +24,7 @@
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
-R__LOAD_LIBRARY(libmvtxstandalonecluster.so)
+R__LOAD_LIBRARY(libevent_display_maker.so)
 R__LOAD_LIBRARY(libmvtx.so)
 
 // https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
@@ -45,32 +45,19 @@ string exec(const char *cmd)
 }
 
 void Fun4All_Mvtx_Combiner(int nEvents = 0,
-		           const string &input_file00 = "mvtx-flx0.list",
-		           const string &input_file01 = "mvtx-flx1.list",
-		           const string &input_file02 = "mvtx-flx2.list",
-		           const string &input_file03 = "mvtx-flx3.list",
-		           const string &input_file04 = "mvtx-flx4.list",
-		           const string &input_file05 = "mvtx-flx5.list")
+		           vector<string> infiles = {"dummy.list"})
 {
   bool runTrkrHits = true;
   bool runTkrkClus = true;
   bool writeOutputDST = false;
   bool stripRawHit = true;
 
-  vector<string> infiles;
-  infiles.push_back(input_file00);
-  infiles.push_back(input_file01);
-  infiles.push_back(input_file02);
-  infiles.push_back(input_file03);
-  infiles.push_back(input_file04);
-  infiles.push_back(input_file05);
-
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);
 
   recoConsts *rc = recoConsts::instance();
   Enable::CDB = true;
-  std::string executable_command = "echo \"$(head -n 1 "; executable_command += input_file00; executable_command += "  | awk '{print $1}' | cut -d \"-\" -f2)\"";
+  std::string executable_command = "echo \"$(head -n 1 "; executable_command += infiles[0]; executable_command += "  | awk '{print $1}' | cut -d \"-\" -f2)\"";
   std::string run_number = exec(executable_command.c_str());
   rc->set_StringFlag("CDB_GLOBALTAG", CDB::global_tag);
   rc->set_uint64Flag("TIMESTAMP", std::stoi(run_number));

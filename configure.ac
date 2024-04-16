@@ -1,4 +1,4 @@
-AC_INIT(mvtx_standalone_cluster,[1.00])
+AC_INIT(event_display_maker,[1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE

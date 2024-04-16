@@ -11,19 +11,23 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  mvtx_standalone_cluster.h
+  mvtx_standalone_cluster.h \
+  event_display_maker.h
 
 lib_LTLIBRARIES = \
-  libmvtxstandalonecluster.la
+  libeventdisplaymaker.la
 
-libmvtxstandalonecluster_la_SOURCES = \
-  mvtx_standalone_cluster.cc
+libeventdisplaymaker_la_SOURCES = \
+  mvtx_standalone_cluster.cc \
+  event_display_maker.cc
 
-libmvtxstandalonecluster_la_LIBADD = \
+libeventdisplaymaker_la_LIBADD = \
   -lphool \
   -ltrack_io \
   -lg4detectors \
+  -lintt \
   -lmvtx \
+  -lmicromegas \
   -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
@@ -32,7 +36,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libmvtxstandalonecluster.la
+testexternals_LDADD   = libeventdisplaymaker.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

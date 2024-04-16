@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef MVTXSTANDALONECLUSTER_H
-#define MVTXSTANDALONECLUSTER_H
+#ifndef EVENTDISPLAYMAKER_H
+#define EVENTDISPLAYMAKER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -14,10 +14,16 @@
 #include <TVector3.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <intt/CylinderGeomIntt.h>
+#include <micromegas/CylinderGeomMicromegas.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
 
+#include <micromegas/MicromegasDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/MvtxEventInfov2.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
@@ -28,13 +34,13 @@
 
 class PHCompositeNode;
 
-class mvtx_standalone_cluster : public SubsysReco
+class event_display_maker : public SubsysReco
 {
  public:
 
-  mvtx_standalone_cluster(const std::string &name = "mvtx_standalone_cluster");
+  event_display_maker(const std::string &name = "event_display_maker");
 
-  ~mvtx_standalone_cluster() override;
+  ~event_display_maker() override;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
@@ -69,56 +75,40 @@ class mvtx_standalone_cluster : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-  void event_file_start(std::ofstream &jason_file_header, std::string date, int runid, int bco);
+  void event_file_start(std::ofstream &jason_file_header, std::string date, int runid, uint64_t bco);
 
   void event_file_trailer(std::ofstream &json_file_trailer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
-
-  void writeFile( const std::string &file ){ outFileName = file; }
-
-  void writeEventDisplays( bool value ) { m_write_evt_display = value; }
 
   void setEventDisplayPath( std::string path ) { m_evt_display_path = path; }
 
   void setMinClusters( unsigned int value ) { m_min_clusters = value; }
 
-  void setRunDate ( std::string date ) { m_run_date = date; }
+  void setRunDate( std::string date ) { m_run_date = date; }
 
  private:
-  int f4aCounter = 0; 
 
   TrkrHitSetContainerv1 *trkrHitSetContainer = nullptr;
   TrkrClusterContainer *trktClusterContainer = nullptr;
   ActsGeometry *actsGeom = nullptr;
-  PHG4CylinderGeomContainer *geantGeom;
+  PHG4CylinderGeomContainer *geantGeomMvtx;
+  PHG4CylinderGeomContainer *geantGeomIntt;
+  PHG4TpcCylinderGeomContainer *geantGeomTpc;
+  PHG4CylinderGeomContainer *geantGeomTpot;
   MvtxEventInfov2* mvtx_event_header = nullptr;
 
-  TFile* outFile = nullptr;
-  TTree* outTree = nullptr;
-  std::string outFileName = "outputClusters.root";
-
   int m_runNumber = 0;
-  int event = 0;
-  std::vector<uint64_t> strobe_BCOs;
   std::vector<uint64_t> L1_BCOs;
+
   int numberL1s = 0;
   int layer = 0;
-  int stave = 0;
-  int chip = 0;
-  int row = 0;
-  int col = 0;
   float localX = 0.;
   float localY = 0.;
   float globalX = 0.;
   float globalY = 0.;
   float globalZ = 0.;
-  float clusZ = 0.;
-  float clusPhi = 0.;
-  unsigned int clusSize = 0;
-
-  bool m_write_evt_display = false;
   std::string m_evt_display_path = ".";
   unsigned int m_min_clusters = 6;
-  std::string m_run_date = "2024-04-09";
+  std::string m_run_date = "2024-04-14";
 };
 
-#endif // MVTXSTANDALONECLUSTER_H
+#endif // EVENTDISPLAYMAKER_H

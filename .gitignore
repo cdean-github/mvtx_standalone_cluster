@@ -53,4 +53,6 @@ ltmain.sh
 missing
 condorJob/
 *.out
+*.err
+*.log
 *.list

@@ -79,14 +79,14 @@ int event_display_maker::process_event(PHCompositeNode *topNode)
   geantGeomTpc = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geantGeomTpc)
   {
-    std::cout << __FILE__ << "::" << __func__ << " - CYLINDERGEOM_TPC missing, doing nothing." << std::endl;
+    std::cout << __FILE__ << "::" << __func__ << " - CYLINDERCELLGEOM_SVTX missing, doing nothing." << std::endl;
     exit(1);
   }
 
-  geantGeomTpot = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_TPOT");
+  geantGeomTpot = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
   if (!geantGeomTpot)
   {
-    std::cout << __FILE__ << "::" << __func__ << " - CYLINDERGEOM_TPOT missing, doing nothing." << std::endl;
+    std::cout << __FILE__ << "::" << __func__ << " - CYLINDERGEOM_MICROMEGAS_FULL missing, doing nothing." << std::endl;
     exit(1);
   }
 

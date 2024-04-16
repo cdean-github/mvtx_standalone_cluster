@@ -22,14 +22,14 @@
 
 #include <micromegas/MicromegasDefs.h>
 #include <trackbase/MvtxDefs.h>
-#include <trackbase/MvtxEventInfov2.h>
+#include <trackbase/MvtxEventInfo.h>
 #include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrHitSetContainerv1.h>
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrClusterContainerv4.h>
-#include <trackbase/TrkrClusterHitAssocv3.h>
-#include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
 
 class PHCompositeNode;
@@ -75,40 +75,51 @@ class event_display_maker : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-  void event_file_start(std::ofstream &jason_file_header, std::string date, int runid, uint64_t bco);
-
-  void event_file_trailer(std::ofstream &json_file_trailer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
-
   void setEventDisplayPath( std::string path ) { m_evt_display_path = path; }
 
-  void setMinClusters( unsigned int value ) { m_min_clusters = value; }
+  void minMVTXClusters( int value ) { m_minMVTXClusters = value; }
+  void minINTTClusters( int value ) { m_minINTTClusters = value; }
+  void minTPCHits     ( int value ) { m_minTPCHits = value; }
+  void minTPOTClusters( int value ) { m_minTPOTClusters = value; }
 
   void setRunDate( std::string date ) { m_run_date = date; }
 
  private:
 
-  TrkrHitSetContainerv1 *trkrHitSetContainer = nullptr;
+  void event_file_start(std::ofstream &json_file_header, std::string date, int runid, uint64_t bco);
+
+  void event_file_trailer(std::ofstream &json_file_trailer, float minHit[3], float maxHit[3]);
+
+  void addHit(std::ofstream &json_file_hit, bool &firstHit, float hit[3], float &minX, float &minY, float &minZ, float &maxX, float &maxY, float &maxZ, bool isMVTX);
+
+  std::string getDate();
+
+  //std::string exec(const char *cmd);
+
+  TrkrHitSetContainer *trkrHitSetContainer = nullptr;
   TrkrClusterContainer *trktClusterContainer = nullptr;
   ActsGeometry *actsGeom = nullptr;
   PHG4CylinderGeomContainer *geantGeomMvtx;
   PHG4CylinderGeomContainer *geantGeomIntt;
   PHG4TpcCylinderGeomContainer *geantGeomTpc;
   PHG4CylinderGeomContainer *geantGeomTpot;
-  MvtxEventInfov2* mvtx_event_header = nullptr;
+  MvtxEventInfo* mvtx_event_header = nullptr;
 
   int m_runNumber = 0;
   std::vector<uint64_t> L1_BCOs;
 
+  int event = 0;
   int numberL1s = 0;
   int layer = 0;
   float localX = 0.;
   float localY = 0.;
-  float globalX = 0.;
-  float globalY = 0.;
-  float globalZ = 0.;
+  float global[3] = {0};
   std::string m_evt_display_path = ".";
-  unsigned int m_min_clusters = 6;
   std::string m_run_date = "2024-04-14";
+  int m_minMVTXClusters = 4;
+  int m_minINTTClusters = 2;
+  int m_minTPCHits = 40;
+  int m_minTPOTClusters = 1;
 };
 
 #endif // EVENTDISPLAYMAKER_H

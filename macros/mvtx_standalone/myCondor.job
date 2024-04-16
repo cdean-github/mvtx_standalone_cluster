@@ -6,4 +6,4 @@ request_memory     = 6GB
 Priority           = 20
 job_lease_duration = 3600
 Arguments          = $(runNumber) 
-Queue runNumber from run.list
+Queue runNumber from runList.txt

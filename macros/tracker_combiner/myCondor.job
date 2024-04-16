@@ -6,7 +6,4 @@ request_memory     = 6GB
 Priority           = 20
 job_lease_duration = 3600
 Arguments          = $(runNumber)
-Output             = $(initialDir)/tracker_combiner/logs/clustering-$(runNumber).out
-Error              = $(initialDir)/tracker_combiner/logs/clustering-$(runNumber).err
-Log                = $(initialDir)/tracker_combiner/logs/clustering-$(runNumber).log
-Queue runNumber from run.list
+Queue runNumber from runList.txt 

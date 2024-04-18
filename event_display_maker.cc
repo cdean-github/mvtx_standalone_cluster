@@ -198,15 +198,17 @@ int event_display_maker::process_event(PHCompositeNode *topNode)
       {
         TrkrDefs::hitkey hit_key = hitr->first;
 
+        double drift_velocity_rescale = 45.0/44.4;
+        double clusz_offset = 16.;
         double AdcClockPeriod = 53.0;
         PHG4TpcCylinderGeom* layergeom = geantGeomTpc->GetLayerCellGeom(layer);
         double radius = layergeom->get_radius();
         float phibin = (float) TpcDefs::getPad(hit_key);
         float tbin = (float) TpcDefs::getTBin(hit_key);
-        double zdriftlength = tbin * actsGeom->get_drift_velocity() * AdcClockPeriod;
+        double zdriftlength = tbin * actsGeom->get_drift_velocity()*drift_velocity_rescale * AdcClockPeriod;
         unsigned short NTBins = (unsigned short) layergeom->get_zbins();
         double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
-        double clusz = (m_tdriftmax * actsGeom->get_drift_velocity()) - zdriftlength;
+        double clusz = (m_tdriftmax * actsGeom->get_drift_velocity()*drift_velocity_rescale) - zdriftlength + clusz_offset;
         float side = TpcDefs::getSide(hitsetkey);
         if (side == 0)
         {
@@ -328,6 +330,7 @@ void event_display_maker::event_file_trailer(std::ofstream &json_file_trailer, f
   float deltaY = minHit[1] - maxHit[1];
   float deltaZ = minHit[2] - maxHit[2];
   float length = 18*sqrt(pow(deltaX, 2) + pow(deltaY, 2) + pow(deltaZ, 2));
+  float scale = 1e3;
 
   json_file_trailer << "]," << std::endl;
   json_file_trailer << "    \"JETS\": [" << std::endl;
@@ -347,9 +350,9 @@ void event_display_maker::event_file_trailer(std::ofstream &json_file_trailer, f
   json_file_trailer << "       ]," << std::endl;
   json_file_trailer << "       \"q\": 1," << std::endl;
   json_file_trailer << "       \"xyz\": [" << std::endl;
-  json_file_trailer << "         " << maxHit[0] << ", " << std::endl;
-  json_file_trailer << "          " << maxHit[1] << ", " << std::endl;
-  json_file_trailer << "         " << maxHit[2] << std::endl;
+  json_file_trailer << "         " << maxHit[0]*scale << ", " << std::endl;
+  json_file_trailer << "          " << maxHit[1]*scale << ", " << std::endl;
+  json_file_trailer << "         " << maxHit[2](scale << std::endl;
   json_file_trailer << "       ]" << std::endl;
   json_file_trailer << "     }," << std::endl;
   json_file_trailer << "     {" << std::endl;
@@ -363,9 +366,9 @@ void event_display_maker::event_file_trailer(std::ofstream &json_file_trailer, f
   json_file_trailer << "       ]," << std::endl;
   json_file_trailer << "       \"q\": 1," << std::endl;
   json_file_trailer << "       \"xyz\": [" << std::endl;
-  json_file_trailer << "         " << maxHit[0] << ", " << std::endl;
-  json_file_trailer << "          " << maxHit[1] << ", " << std::endl;
-  json_file_trailer << "         " << maxHit[2] << std::endl;
+  json_file_trailer << "         " << maxHit[0]*scale << ", " << std::endl;
+  json_file_trailer << "          " << maxHit[1]*scale << ", " << std::endl;
+  json_file_trailer << "         " << maxHit[2]*scale << std::endl;
   json_file_trailer << "       ]" << std::endl;
   json_file_trailer << "     }" << std::endl;
   json_file_trailer << "   ]" << std::endl;

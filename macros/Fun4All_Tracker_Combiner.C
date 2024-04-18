@@ -182,8 +182,8 @@ void Fun4All_Tracker_Combiner(int nEvents = 0,
  
     event_display_maker *myTester = new event_display_maker();
     myTester->setEventDisplayPath("/sphenix/user/cdean/public/run24_cosmic_event_displays");
-    myTester->minMVTXClusters(3);
-    myTester->minINTTClusters(2);
+    myTester->minMVTXClusters(5);
+    myTester->minINTTClusters(3);
     myTester->minTPCHits(1000);
     myTester->minTPOTClusters(1);
     se->registerSubsystem(myTester);

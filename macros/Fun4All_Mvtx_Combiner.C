@@ -24,7 +24,7 @@
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
-R__LOAD_LIBRARY(libevent_display_maker.so)
+R__LOAD_LIBRARY(libeventdisplaymaker.so)
 R__LOAD_LIBRARY(libmvtx.so)
 
 // https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po

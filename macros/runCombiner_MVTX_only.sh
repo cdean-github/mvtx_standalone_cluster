@@ -9,7 +9,7 @@ if [ $# -eq 0 ]
 fi
 
 
-source /opt/sphenix/core/bin/sphenix_setup.sh -n new.9
+source /opt/sphenix/core/bin/sphenix_setup.sh -n new
 
 #export HOME=/sphenix/u/${LOGNAME}
 export HOME=/sphenix/u/cdean

@@ -12,14 +12,16 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   mvtx_standalone_cluster.h \
-  event_display_maker.h
+  event_display_maker.h \
+  silicon_detector_analyser.h
 
 lib_LTLIBRARIES = \
   libeventdisplaymaker.la
 
 libeventdisplaymaker_la_SOURCES = \
   mvtx_standalone_cluster.cc \
-  event_display_maker.cc
+  event_display_maker.cc \
+  silicon_detector_analyser.cc
 
 libeventdisplaymaker_la_LIBADD = \
   -lphool \
@@ -28,6 +30,8 @@ libeventdisplaymaker_la_LIBADD = \
   -lintt \
   -lmvtx \
   -lmicromegas \
+  -lglobalvertex \
+  -ltrackbase_historic_io \
   -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc

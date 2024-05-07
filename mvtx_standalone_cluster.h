@@ -104,16 +104,18 @@ class mvtx_standalone_cluster : public SubsysReco
   int layer = 0;
   int stave = 0;
   int chip = 0;
-  int row = 0;
-  int col = 0;
-  float localX = 0.;
-  float localY = 0.;
-  float globalX = 0.;
-  float globalY = 0.;
-  float globalZ = 0.;
-  float clusZ = 0.;
-  float clusPhi = 0.;
-  unsigned int clusSize = 0;
+  //int row = 0;
+  //int col = 0;
+  std::vector<float> localX;
+  std::vector<float> localY;
+  std::vector<float> globalX;
+  std::vector<float> globalY;
+  std::vector<float> globalZ;
+  std::vector<float> clusZ;
+  std::vector<float> clusPhi;
+  std::vector<unsigned int> clusSize;
+  float chip_occupancy = 0.;
+  int chip_hits = 0.;
 
   bool m_write_evt_display = false;
   std::string m_evt_display_path = ".";

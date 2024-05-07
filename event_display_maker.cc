@@ -352,7 +352,7 @@ void event_display_maker::event_file_trailer(std::ofstream &json_file_trailer, f
   json_file_trailer << "       \"xyz\": [" << std::endl;
   json_file_trailer << "         " << maxHit[0]*scale << ", " << std::endl;
   json_file_trailer << "          " << maxHit[1]*scale << ", " << std::endl;
-  json_file_trailer << "         " << maxHit[2](scale << std::endl;
+  json_file_trailer << "         " << maxHit[2]*scale << std::endl;
   json_file_trailer << "       ]" << std::endl;
   json_file_trailer << "     }," << std::endl;
   json_file_trailer << "     {" << std::endl;

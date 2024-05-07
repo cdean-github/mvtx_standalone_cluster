@@ -26,6 +26,7 @@ mvtx_standalone_cluster::~mvtx_standalone_cluster()
 int mvtx_standalone_cluster::Init(PHCompositeNode *topNode)
 {
   outFile = new TFile(outFileName.c_str(), "RECREATE");
+  //outTree = new TTree("Hits", "Hits");
   outTree = new TTree("Clusters", "Clusters");
   outTree->OptimizeBaskets();
   outTree->SetAutoSave(-5e6);
@@ -37,16 +38,16 @@ int mvtx_standalone_cluster::Init(PHCompositeNode *topNode)
   outTree->Branch("layer", &layer, "layer/I");
   outTree->Branch("stave", &stave, "stave/I");
   outTree->Branch("chip", &chip, "chip/I");
-  outTree->Branch("row", &row, "row/I");
-  outTree->Branch("col", &col, "col/I");
-  outTree->Branch("localX", &localX, "localX/F");
-  outTree->Branch("localY", &localY, "localY/F");
-  outTree->Branch("globalX", &globalX, "globalX/F");
-  outTree->Branch("globalY", &globalY, "globalY/F");
-  outTree->Branch("globalZ", &globalZ, "globalZ/F");
-  outTree->Branch("clusZSize", &clusZ, "clusZSize/F");
-  outTree->Branch("clusPhiSize", &clusPhi, "clusPhiSize/F");
-  outTree->Branch("clusSize", &clusSize, "clusSize/i");
+  outTree->Branch("localX", &localX);
+  outTree->Branch("localY", &localY);
+  outTree->Branch("globalX", &globalX);
+  outTree->Branch("globalY", &globalY);
+  outTree->Branch("globalZ", &globalZ);
+  outTree->Branch("clusZSize", &clusZ);
+  outTree->Branch("clusPhiSize", &clusPhi);
+  outTree->Branch("clusSize", &clusSize);
+  outTree->Branch("chip_occupancy", &chip_occupancy, "chip_occupancy/F");
+  outTree->Branch("chip_hits", &chip_hits, "chip_hits/I");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -116,18 +117,16 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
   layer = 0;
   stave = 0;
   chip = 0;
-  row = 0;
-  col = 0;
-  localX = 0.;
-  localY = 0.;
-  globalX = 0.;
-  globalY = 0.;
-  globalZ = 0.;
-  clusZ = 0.;
-  clusPhi = 0.;
-  clusSize = 0;
-
-  if (numberL1s == 0) return Fun4AllReturnCodes::ABORTEVENT;
+  localX.clear();
+  localY.clear();
+  globalX.clear();
+  globalY.clear();
+  globalZ.clear();
+  clusZ.clear();
+  clusPhi.clear();
+  clusSize.clear();
+  chip_occupancy = 0.;
+  chip_hits = 0.;
 
   //Set up the event display writer
   std::ofstream outFile;
@@ -156,64 +155,87 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
     auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeom->GetLayerGeom(layer));
     TVector2 LocalUse;
 
-    for (TrkrClusterContainer::ConstIterator clusteritr = clusterrange.first; clusteritr != clusterrange.second; ++clusteritr)
+    chip_hits = hitsetitr->second->size();
+    chip_occupancy = (float) chip_hits / (512*1024);
+    if (chip_occupancy*100 >= -1.) //Take all clusters
     {
-      TrkrCluster *cluster = clusteritr->second;
+      for (TrkrClusterContainer::ConstIterator clusteritr = clusterrange.first; clusteritr != clusterrange.second; ++clusteritr)
+      {
+      //TrkrHitSet::ConstRange hit_range = hitsetitr->second->getHits();
+      //for (TrkrHitSet::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
+      //{
+        TrkrCluster *cluster = clusteritr->second;
+        //TrkrDefs::hitkey hitKey = hit_iter->first;
 
-      localX = cluster->getLocalX();
-      localY = cluster->getLocalY();
-      clusZ = cluster->getZSize();
-      clusPhi = cluster->getPhiSize();
-      clusSize = cluster->getAdc();
+        //TVector3 local_coords = layergeom->get_local_coords_from_pixel(MvtxDefs::getRow(hitKey), MvtxDefs::getCol(hitKey));
+        //localX.push_back(local_coords.x());
+        //localY.push_back(local_coords.z());
+        localX.push_back(cluster->getLocalX());
+        localY.push_back(cluster->getLocalY());
+        clusZ.push_back(cluster->getZSize());
+        clusPhi.push_back(cluster->getPhiSize());
+        clusSize.push_back(cluster->getAdc());
 
-      LocalUse.SetX(localX);
-      LocalUse.SetY(localY);
-      TVector3 ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
-      globalX = ClusterWorld.X();
-      globalY = ClusterWorld.Y();
-      globalZ = ClusterWorld.Z();
+        //LocalUse.SetX(local_coords.x());
+        //LocalUse.SetY(local_coords.z());
+        LocalUse.SetX(cluster->getLocalX());
+        LocalUse.SetY(cluster->getLocalY());
+        TVector3 ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
+        globalX.push_back(ClusterWorld.X());
+        globalY.push_back(ClusterWorld.Y());
+        globalZ.push_back(ClusterWorld.Z());
+
+        if (outFile)
+        {
+          std::ostringstream spts;
+          if (firstHits)
+          {
+            firstHits = false;
+            minX = maxX = ClusterWorld.X();
+            minY = maxY = ClusterWorld.Y();
+            minZ = maxZ = ClusterWorld.Z();
+          }
+          else
+          {
+            spts << ",";
+            if (ClusterWorld.Y() < minY)
+            {
+              minX = ClusterWorld.X();
+              minY = ClusterWorld.Y();
+              minZ = ClusterWorld.Z();
+            }
+            if (ClusterWorld.Y() > maxY)
+            {
+              maxX = ClusterWorld.X();
+              maxY = ClusterWorld.Y();
+              maxZ = ClusterWorld.Z();
+            }
+          }
+
+          spts << "{ \"x\": ";
+          spts << ClusterWorld.X();
+          spts << ", \"y\": ";
+          spts << ClusterWorld.Y();
+          spts << ", \"z\": ";
+          spts << ClusterWorld.Z();
+          spts << ", \"e\": 0}";
+
+          outFile << (boost::format("%1%") % spts.str());
+          spts.clear();
+          spts.str("");
+        }
+      }
 
       outTree->Fill();
 
-      if (outFile)
-      {
-        std::ostringstream spts;
-        if (firstHits)
-        {
-          firstHits = false;
-          minX = maxX = globalX;
-          minY = maxY = globalY;
-          minZ = maxZ = globalZ;
-        }
-        else
-        {
-          spts << ",";
-          if (globalY < minY)
-          {
-            minX = globalX;
-            minY = globalY;
-            minZ = globalZ;
-          }
-          if (globalY > maxY)
-          {
-            maxX = globalX;
-            maxY = globalY;
-            maxZ = globalZ;
-          }
-        }
-
-        spts << "{ \"x\": ";
-        spts << globalX;
-        spts << ", \"y\": ";
-        spts << globalY;
-        spts << ", \"z\": ";
-        spts << globalZ;
-        spts << ", \"e\": 0}";
-
-        outFile << (boost::format("%1%") % spts.str());
-        spts.clear();
-        spts.str("");
-      }
+      localX.clear();
+      localY.clear();
+      globalX.clear();
+      globalY.clear();
+      globalZ.clear();
+      clusZ.clear();
+      clusPhi.clear();
+      clusSize.clear();
     }
   }
 

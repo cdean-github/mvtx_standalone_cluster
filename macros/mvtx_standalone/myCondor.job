@@ -1,6 +1,6 @@
 Universe           = vanilla
 initialDir         = /sphenix/user/cdean/public/mvtx_standalone_cluster/macros 
-Executable         = $(initialDir)/runCombiner_MVTX_only.sh
+Executable         = $(initialDir)/runCombiner_Mvtx_Combiner.sh
 PeriodicHold       = (NumJobStarts>=1 && JobStatus == 1)
 request_memory     = 6GB
 Priority           = 20

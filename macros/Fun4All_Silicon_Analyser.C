@@ -21,6 +21,7 @@
 #include <Trkr_RecoInit.C>
 #include "G4Setup_sPHENIX.C"
 #include <event_display_maker/silicon_detector_analyser.h>
+#include <event_display_maker/mvtx_standalone_cluster.h>
 
 #include <phool/recoConsts.h>
 
@@ -56,7 +57,7 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
   bool readPRDF = false;
   bool runTrkrHits = true;
   bool runTkrkClus = true;
-  bool runSeeding = true;
+  bool runSeeding = false;
   bool writeOutputDST = true;
   bool stripRawHit = true;
 
@@ -77,7 +78,7 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
   rc->set_uint64Flag("TIMESTAMP", std::stoi(run_number));
   rc->set_IntFlag("RUNNUMBER", std::stoi(run_number));
 
-  string outpath = "/sphenix/tg/tg01/commissioning/MVTX/beam/20240503_newBuild";
+  string outpath = "/sphenix/tg/tg01/commissioning/MVTX/beam/20240507_ana.416Build";
   string outtrailer = "silicon_" + run_number.substr(0, run_number.size()-1) + "_" + file_number.substr(0, file_number.size()-1) + ".root";
 
   Fun4AllInputManager *inputmanager = new Fun4AllDstInputManager("DSTin");
@@ -105,6 +106,12 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
     Intt_Clustering();
   }
 
+  mvtx_standalone_cluster *myTester = new mvtx_standalone_cluster();
+  myTester->writeFile("hitTrees/TTree_" + outtrailer);
+  myTester->writeEventDisplays(false);
+  myTester->setEventDisplayPath(".");
+  se->registerSubsystem(myTester);
+/*
   if (runSeeding)
   {
     auto silicon_Seeding = new PHActsSiliconSeeding;
@@ -140,7 +147,7 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
     myResiduals->runnumber(std::stoi(run_number));
     myResiduals->outfileName(outpath + "/TTree_" + outtrailer);
   }
-
+*/
   if (writeOutputDST)
   {
     std::string outputFile = outpath + "/DST_" + outtrailer;

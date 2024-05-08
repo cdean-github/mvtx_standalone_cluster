@@ -10,6 +10,12 @@
 
 #include <boost/format.hpp>
 #include <boost/math/special_functions/sign.hpp>
+
+int nEvents = 0;
+int nEventsWTrigger = 0;
+int nEventsWOccGreaterThan0p3 = 0;
+int nEventsWTriggerAndOccGreaterThan0p3 = 0;
+
 // Reference: https://github.com/sPHENIX-Collaboration/analysis/blob/master/TPC/DAQ/macros/prelimEvtDisplay/TPCEventDisplay.C
 //____________________________________________________________________________..
 mvtx_standalone_cluster::mvtx_standalone_cluster(const std::string &name):
@@ -26,8 +32,8 @@ mvtx_standalone_cluster::~mvtx_standalone_cluster()
 int mvtx_standalone_cluster::Init(PHCompositeNode *topNode)
 {
   outFile = new TFile(outFileName.c_str(), "RECREATE");
-  //outTree = new TTree("Hits", "Hits");
-  outTree = new TTree("Clusters", "Clusters");
+  outTree = new TTree("Hits", "Hits");
+  //outTree = new TTree("Clusters", "Clusters");
   outTree->OptimizeBaskets();
   outTree->SetAutoSave(-5e6);
 
@@ -43,9 +49,9 @@ int mvtx_standalone_cluster::Init(PHCompositeNode *topNode)
   outTree->Branch("globalX", &globalX);
   outTree->Branch("globalY", &globalY);
   outTree->Branch("globalZ", &globalZ);
-  outTree->Branch("clusZSize", &clusZ);
-  outTree->Branch("clusPhiSize", &clusPhi);
-  outTree->Branch("clusSize", &clusSize);
+  //outTree->Branch("clusZSize", &clusZ);
+  //outTree->Branch("clusPhiSize", &clusPhi);
+  //outTree->Branch("clusSize", &clusSize);
   outTree->Branch("chip_occupancy", &chip_occupancy, "chip_occupancy/F");
   outTree->Branch("chip_hits", &chip_hits, "chip_hits/I");
 
@@ -54,6 +60,8 @@ int mvtx_standalone_cluster::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
 {
+  bool occAbove0p3 = false;
+
   PHNodeIterator dstiter(topNode);
 
   recoConsts *rc = recoConsts::instance();
@@ -128,6 +136,9 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
   chip_occupancy = 0.;
   chip_hits = 0.;
 
+  ++nEvents;
+  if (numberL1s != 0) ++nEventsWTrigger;
+
   //Set up the event display writer
   std::ofstream outFile;
   bool firstHits = true;
@@ -149,7 +160,7 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
     stave = MvtxDefs::getStaveId(hitsetkey);
     chip = MvtxDefs::getChipId(hitsetkey);
 
-    TrkrClusterContainer::ConstRange clusterrange = trktClusterContainer->getClusters(hitsetkey);
+    //TrkrClusterContainer::ConstRange clusterrange = trktClusterContainer->getClusters(hitsetkey);
 
     auto surface = actsGeom->maps().getSiliconSurface(hitsetkey);
     auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeom->GetLayerGeom(layer));
@@ -157,29 +168,35 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
 
     chip_hits = hitsetitr->second->size();
     chip_occupancy = (float) chip_hits / (512*1024);
-    if (chip_occupancy*100 >= -1.) //Take all clusters
+    if (chip_occupancy*100 >= 0.3) //Take all clusters
     {
-      for (TrkrClusterContainer::ConstIterator clusteritr = clusterrange.first; clusteritr != clusterrange.second; ++clusteritr)
+      if (!occAbove0p3)
       {
-      //TrkrHitSet::ConstRange hit_range = hitsetitr->second->getHits();
-      //for (TrkrHitSet::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
+        occAbove0p3 = true;
+        ++nEventsWOccGreaterThan0p3;
+        if (numberL1s != 0) ++nEventsWTriggerAndOccGreaterThan0p3;
+      }
+      //for (TrkrClusterContainer::ConstIterator clusteritr = clusterrange.first; clusteritr != clusterrange.second; ++clusteritr)
       //{
-        TrkrCluster *cluster = clusteritr->second;
-        //TrkrDefs::hitkey hitKey = hit_iter->first;
+      TrkrHitSet::ConstRange hit_range = hitsetitr->second->getHits();
+      for (TrkrHitSet::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
+      {
+        //TrkrCluster *cluster = clusteritr->second;
+        TrkrDefs::hitkey hitKey = hit_iter->first;
 
-        //TVector3 local_coords = layergeom->get_local_coords_from_pixel(MvtxDefs::getRow(hitKey), MvtxDefs::getCol(hitKey));
-        //localX.push_back(local_coords.x());
-        //localY.push_back(local_coords.z());
-        localX.push_back(cluster->getLocalX());
-        localY.push_back(cluster->getLocalY());
-        clusZ.push_back(cluster->getZSize());
-        clusPhi.push_back(cluster->getPhiSize());
-        clusSize.push_back(cluster->getAdc());
+        TVector3 local_coords = layergeom->get_local_coords_from_pixel(MvtxDefs::getRow(hitKey), MvtxDefs::getCol(hitKey));
+        localX.push_back(local_coords.x());
+        localY.push_back(local_coords.z());
+        //localX.push_back(cluster->getLocalX());
+        //localY.push_back(cluster->getLocalY());
+        //clusZ.push_back(cluster->getZSize());
+        //clusPhi.push_back(cluster->getPhiSize());
+        //clusSize.push_back(cluster->getAdc());
 
-        //LocalUse.SetX(local_coords.x());
-        //LocalUse.SetY(local_coords.z());
-        LocalUse.SetX(cluster->getLocalX());
-        LocalUse.SetY(cluster->getLocalY());
+        LocalUse.SetX(local_coords.x());
+        LocalUse.SetY(local_coords.z());
+        //LocalUse.SetX(cluster->getLocalX());
+        //LocalUse.SetY(cluster->getLocalY());
         TVector3 ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
         globalX.push_back(ClusterWorld.X());
         globalY.push_back(ClusterWorld.Y());
@@ -259,6 +276,13 @@ int mvtx_standalone_cluster::End(PHCompositeNode *topNode)
   outFile->Write();
   outFile->Close();
   delete outFile;
+
+
+std::cout << "MVTX hit analyser end" << std::endl;
+std::cout << "Number of events analysed: " << nEvents << std::endl;
+std::cout << "Number of events analysed with trigger: " << nEventsWTrigger << std::endl;
+std::cout << "Number of events analysed with occupancy above 0.3%: " << nEventsWOccGreaterThan0p3 << std::endl;
+std::cout << "Number of events analysed with trigger and occupancy above 0.3%:: " << nEventsWTriggerAndOccGreaterThan0p3 << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

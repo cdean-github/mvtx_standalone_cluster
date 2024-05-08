@@ -8,7 +8,7 @@ if [ $# -eq 0 ]
     exit 1
 fi
 
-source /opt/sphenix/core/bin/sphenix_setup.sh -n new
+source /opt/sphenix/core/bin/sphenix_setup.sh -n ana.416
 
 #export HOME=/sphenix/u/${LOGNAME}
 export HOME=/sphenix/u/cdean

@@ -22,10 +22,10 @@ There are 4 macros, each with an associated shell script and condor submission s
 
 The macros are:
 
-1. Fun4All_Mvtx_Combiner.C
-2. Fun4All_Tracker_Combiner.C
-3. Fun4All_Silicon_Analyser.C
-4. Fun4All_writeHit.C
+1. Fun4All_Mvtx_Combiner.C (converts PRDF files to TrkrClusters, can write an nTuple with clusters or hits for quick analysis)
+2. Fun4All_Tracker_Combiner.C (converts tracker PRDF files and makes cosmic ray event displays for all trackers, not useful for beam)
+3. Fun4All_Silicon_Analyser.C (converts raw hit files from the central production, creates DSTs with silicon and TPOT hits, clusters seeds and vertices **read notes on this module first**)
+4. Fun4All_writeHit.C (takes DSTs with clusters and/or hits, and writes nTuples with clusters or hits for quick analysis)
 
 ### Fun4All_Mvtx_Combiner.C
 
@@ -80,3 +80,7 @@ You can run over a single run in a similar fastion to Fun4All_Mvtx_Combiner.C by
 ```
 
 You can also use the provided condor script under ```silicon_analyzer``` with a list of DSTs to process multiple files at once. There's also another shell script called ```checkForRuns.sh``` which will take a list of processed runs which have RawHit DSTs then check the MVTX PRDF file location to see if the MVTX was included in that run. A list.run file will be generated only for runs where the MVTX also took data 
+
+### Fun4All_writeHit.C
+
+Similar to Fun4All_Silicon_Analyser.C but reads in a DST that already contains clusters, then writes an nTuple of hits or clusters using ```mvtx_standalone_cluster```. It also takes a single DST file as an argument. Look at ``` macros/writeHit/list.runs``` for example input files (or execute ```condor_submit myCondor.job under ```macros/writeHit``` to launch processing of all the runs in ```list.runs```

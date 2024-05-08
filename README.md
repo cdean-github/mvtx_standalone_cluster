@@ -87,4 +87,4 @@ You can also use the provided condor script under ```silicon_analyzer``` with a 
 
 ### Fun4All_writeHit.C
 
-Similar to Fun4All_Silicon_Analyser.C but reads in a DST that already contains clusters, then writes an nTuple of hits or clusters using ```mvtx_standalone_cluster```. It also takes a single DST file as an argument. Look at ``` macros/writeHit/list.runs``` for example input files (or execute ```condor_submit myCondor.job under ```macros/writeHit``` to launch processing of all the runs in ```list.runs```
+Similar to Fun4All_Silicon_Analyser.C but reads in a DST that already contains clusters, then writes an nTuple of hits or clusters using ```mvtx_standalone_cluster```. It also takes a single DST file as an argument. Look at ```macros/writeHit/list.runs``` for example input files (or execute ```condor_submit myCondor.job``` under ```macros/writeHit``` to launch processing of all the runs in ```list.runs```

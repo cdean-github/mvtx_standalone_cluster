@@ -22,10 +22,14 @@ There are 4 macros, each with an associated shell script and condor submission s
 
 The macros are:
 
-1. Fun4All_Mvtx_Combiner.C (converts PRDF files to TrkrClusters, can write an nTuple with clusters or hits for quick analysis)
-2. Fun4All_Tracker_Combiner.C (converts tracker PRDF files and makes cosmic ray event displays for all trackers, not useful for beam)
-3. Fun4All_Silicon_Analyser.C (converts raw hit files from the central production, creates DSTs with silicon and TPOT hits, clusters seeds and vertices **read notes on this module first**)
-4. Fun4All_writeHit.C (takes DSTs with clusters and/or hits, and writes nTuples with clusters or hits for quick analysis)
+1. Fun4All_Mvtx_Combiner.C
+	- converts PRDF files to TrkrClusters, can write an nTuple with clusters or hits for quick analysis
+2. Fun4All_Tracker_Combiner.C
+	- converts tracker PRDF files and makes cosmic ray event displays for all trackers, not useful for beam
+3. Fun4All_Silicon_Analyser.C
+	- converts raw hit files from the central production, creates DSTs with silicon and TPOT hits, clusters seeds and vertices **read notes on this module first**
+4. Fun4All_writeHit.C
+	- takes DSTs with clusters and/or hits, and writes nTuples with clusters or hits for quick analysis
 
 ### Fun4All_Mvtx_Combiner.C
 

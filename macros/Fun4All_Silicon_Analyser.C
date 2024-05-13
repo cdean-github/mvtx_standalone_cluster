@@ -3,6 +3,7 @@
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllOutputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
+#include <fun4all/Fun4AllRunNodeInputManager.h>
 #include <fun4allraw/InputManagerType.h>
 
 #include <ffamodules/CDBInterface.h>
@@ -13,6 +14,7 @@
 #include <mvtx/MvtxCombinedRawDataDecoder.h>
 #include <trackingdiagnostics/TrackSeedTrackMapConverter.h>
 #include <trackingdiagnostics/TrackResiduals.h>
+#include <trackreco/AzimuthalSeeder.h>
 #include <trackreco/PHActsSiliconSeeding.h>
 #include <trackreco/PHSiliconSeedMerger.h>
 #include <trackreco/PHSimpleVertexFinder.h>
@@ -57,7 +59,7 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
   bool readPRDF = false;
   bool runTrkrHits = true;
   bool runTkrkClus = true;
-  bool runSeeding = false;
+  bool runSeeding = true;
   bool writeOutputDST = true;
   bool stripRawHit = true;
 
@@ -78,49 +80,41 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
   rc->set_uint64Flag("TIMESTAMP", std::stoi(run_number));
   rc->set_IntFlag("RUNNUMBER", std::stoi(run_number));
 
-  string outpath = "/sphenix/tg/tg01/commissioning/MVTX/beam/20240507_ana.416Build";
-  string outtrailer = "silicon_" + run_number.substr(0, run_number.size()-1) + "_" + file_number.substr(0, file_number.size()-1) + ".root";
+  std::string geofile = CDBInterface::instance()->getUrl("Tracking_Geometry");
+  Fun4AllRunNodeInputManager *ingeo = new Fun4AllRunNodeInputManager("GeoIn");
+  ingeo->AddFile(geofile);
+  se->registerInputManager(ingeo);
+
+  G4TPC::tpc_drift_velocity_reco = (8.0 / 1000) * 107.0 / 105.0;
+  G4MAGNET::magfield = "0.01";
+  G4MAGNET::magfield_tracking = G4MAGNET::magfield;
+  G4MAGNET::magfield_rescale = 1;
+  ACTSGEOM::ActsGeomInit();
 
   Fun4AllInputManager *inputmanager = new Fun4AllDstInputManager("DSTin");
   inputmanager->AddFile(infile);
   se->registerInputManager(inputmanager);   
 
+  string outpath = "/sphenix/tg/tg01/commissioning/MVTX/beam/20240509_newBuild";
+  string outtrailer = "MVTX_clusterVtx_" + run_number.substr(0, run_number.size()-1) + "_" + file_number.substr(0, file_number.size()-1) + ".root";
+
   if (runTrkrHits)
   {
     Mvtx_HitUnpacking();
-    Intt_HitUnpacking();
+    //Intt_HitUnpacking();
   }
 
   if (runTkrkClus) 
   {
-    Enable::MVTX = true;
-    Enable::INTT = true;
-    Enable::TPC = true;
-    Enable::MICROMEGAS = true;
-  
-    G4Init();
-    G4Setup();
-
-    TrackingInit();
     Mvtx_Clustering();
-    Intt_Clustering();
   }
 
-  mvtx_standalone_cluster *myTester = new mvtx_standalone_cluster();
-  myTester->writeFile("hitTrees/TTree_" + outtrailer);
-  myTester->writeEventDisplays(false);
-  myTester->setEventDisplayPath(".");
-  se->registerSubsystem(myTester);
-/*
   if (runSeeding)
   {
-    auto silicon_Seeding = new PHActsSiliconSeeding;
-    silicon_Seeding->Verbosity(verbosity);
-    se->registerSubsystem(silicon_Seeding);
-
-    auto merger = new PHSiliconSeedMerger;
-    merger->Verbosity(verbosity);
-    se->registerSubsystem(merger);
+    AzimuthalSeeder *seeder = new AzimuthalSeeder;
+    seeder->Verbosity(verbosity);
+    seeder->histos();
+    se->registerSubsystem(seeder);
 
     auto converter = new TrackSeedTrackMapConverter;
     converter->setTrackSeedName("SiliconTrackSeedContainer");
@@ -130,7 +124,7 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
     se->registerSubsystem(converter);
    
     PHSimpleVertexFinder *finder = new PHSimpleVertexFinder;
-    finder->Verbosity(0);
+    finder->Verbosity(verbosity);
     finder->setDcaCut(0.5);
     finder->setTrackPtCut(-99999.);
     finder->setBeamLineCut(1);
@@ -139,15 +133,14 @@ void Fun4All_Silicon_Analyser(int nEvents = 0, string infile = "dummy.file")
     finder->setOutlierPairCut(0.1);
     se->registerSubsystem(finder);
  
+    string clusterpath = "clusterVtxTrees";
+
     silicon_detector_analyser *myTester = new silicon_detector_analyser();
+    myTester->writeFile(clusterpath + "/TTree_" + outtrailer);
     myTester->setEventDisplayPath("/sphenix/user/cdean/public/run24_pp_event_displays");
     se->registerSubsystem(myTester);
-
-    TrackResiduals* myResiduals = new TrackResiduals("myResiduals");
-    myResiduals->runnumber(std::stoi(run_number));
-    myResiduals->outfileName(outpath + "/TTree_" + outtrailer);
   }
-*/
+
   if (writeOutputDST)
   {
     std::string outputFile = outpath + "/DST_" + outtrailer;

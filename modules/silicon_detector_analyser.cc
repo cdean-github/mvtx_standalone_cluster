@@ -24,6 +24,24 @@ silicon_detector_analyser::~silicon_detector_analyser()
 //____________________________________________________________________________..
 int silicon_detector_analyser::Init(PHCompositeNode *topNode)
 {
+  outRoot = new TFile(outRootName.c_str(), "RECREATE");
+  outTree = new TTree("Clusters", "Clusters");
+  outTree->OptimizeBaskets();
+  outTree->SetAutoSave(-5e6);
+
+  outTree->Branch("event", &event, "event/I");
+  outTree->Branch("BCO", &triggerBCO, "triggerBCO/l");
+  outTree->Branch("vertex_x", &vertex_x, "vertex_x/F");
+  outTree->Branch("vertex_y", &vertex_y, "vertex_y/F");
+  outTree->Branch("vertex_z", &vertex_z, "vertex_z/F");
+  outTree->Branch("clusLayer", &clusLayer);
+  outTree->Branch("clusPhi", &clusPhi);
+  outTree->Branch("clusEta", &clusEta);
+  outTree->Branch("clusSize", &clusSize);
+  outTree->Branch("clusX", &clusX);
+  outTree->Branch("clusY", &clusY);
+  outTree->Branch("clusZ", &clusZ);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
@@ -76,21 +94,7 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
     std::cout << __FILE__ << "::" << __func__ << " - CYLINDERGEOM_INTT missing, doing nothing." << std::endl;
     exit(1);
   }
-/*
-  geantGeomTpc = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!geantGeomTpc)
-  {
-    std::cout << __FILE__ << "::" << __func__ << " - CYLINDERCELLGEOM_SVTX missing, doing nothing." << std::endl;
-    exit(1);
-  }
 
-  geantGeomTpot = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
-  if (!geantGeomTpot)
-  {
-    std::cout << __FILE__ << "::" << __func__ << " - CYLINDERGEOM_MICROMEGAS_FULL missing, doing nothing." << std::endl;
-    exit(1);
-  }
-*/
   mvtx_event_header = findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
   if (!mvtx_event_header)
   {
@@ -116,7 +120,7 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
   }
 
   SvtxVertexMap* vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!trackMap)
+  if (!vertexMap)
   {
     std::cout << __FILE__ << "::" << __func__ << " - SvtxVertexMap missing, doing nothing." << std::endl;
     exit(1);
@@ -127,72 +131,32 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
   global[0] = 0.;
   global[1] = 0.;
   global[2] = 0.;
-  //int count_MVTXClusters = 0, count_INTTClusters = 0;
-  if (numberL1s == 0)
+  clusLayer.clear();
+  clusPhi.clear();
+  clusEta.clear();
+  clusSize.clear();
+  clusX.clear();
+  clusY.clear();
+  clusZ.clear();
+
+  if (vertexMap->size() != 1)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  SvtxVertex* thePV = vertexMap->begin()->second;
+  vertex_x = thePV->get_x();
+  vertex_y = thePV->get_y();
+  vertex_z = thePV->get_z();
+  
   //Set up the event display writer
   std::ofstream outFile;
   bool firstHits = true;
 
-  uint64_t triggerBCO = L1_BCOs.size() > 0 ? L1_BCOs[0] : event;
+  triggerBCO = L1_BCOs.size() > 0 ? L1_BCOs[0] : event;
   std::string outFileName = m_evt_display_path + "/EvtDisplay_" + std::to_string(m_runNumber) + "_" + std::to_string(triggerBCO) + ".json";
   outFile.open(outFileName.c_str());
   m_run_date = getDate();
   event_file_start(outFile, m_run_date, m_runNumber, triggerBCO); 
-/*
-  TrkrHitSetContainer::ConstRange hitsetrange = trkrHitSetContainer->getHitSets();
-
-  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
-  {
-    TrkrHitSet *hitset = hitsetitr->second;
-    auto hitsetkey = hitset->getHitSetKey();
-
-    layer = TrkrDefs::getLayer(hitsetkey);
-
-    TVector2 LocalUse;
-    TVector3 ClusterWorld;
-
-    TrkrClusterContainer::ConstRange clusterrange = trktClusterContainer->getClusters(hitsetkey);
-    for (TrkrClusterContainer::ConstIterator clusteritr = clusterrange.first; clusteritr != clusterrange.second; ++clusteritr)
-    {
-      TrkrCluster *cluster = clusteritr->second;
-
-      localX = cluster->getLocalX();
-      localY = cluster->getLocalY();
-
-      LocalUse.SetX(localX);
-      LocalUse.SetY(localY);
-      
-      if (0 <= layer && layer <= 2)
-      {
-        auto surface = actsGeom->maps().getSiliconSurface(hitsetkey);
-        auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeomMvtx->GetLayerGeom(layer));
-        ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
-        ++count_MVTXClusters;
-      }
-      else if (3 <= layer && layer <= 6)
-      {
-        auto surface = actsGeom->maps().getSiliconSurface(hitsetkey);
-        auto layergeom = dynamic_cast<CylinderGeomIntt *>(geantGeomIntt->GetLayerGeom(layer));
-        ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
-        ++count_INTTClusters;
-      }
-      else
-      {
-        continue; //Not a cluster within the silicon volume
-      }
-
-      global[0] = ClusterWorld.X();
-      global[1] = ClusterWorld.Y();
-      global[2] = ClusterWorld.Z();
-
-      bool isMVTX = (0 <= layer && layer <= 2) ? true : false;
-      if (global[0] < 0) addHit(outFile, firstHits, global);
-    }
-  }
-*/
 
   for (auto& iter : *trackMap)
   {
@@ -223,6 +187,15 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
         {
           CylinderGeom_Mvtx* layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeomMvtx->GetLayerGeom(layer));
           ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
+
+          clusLayer.push_back(layer);
+          clusPhi.push_back(iter.second->get_phi());
+          clusEta.push_back(iter.second->get_eta());
+          clusSize.push_back(cluster->getAdc());
+          clusX.push_back(ClusterWorld.X());
+          clusY.push_back(ClusterWorld.Y());
+          clusZ.push_back(ClusterWorld.Z());
+
           break;
         }
         case TrkrDefs::TrkrId::inttId:
@@ -243,6 +216,8 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
     }
   }
 
+  outTree->Fill();
+
   event_file_trailer_1(outFile);
   unsigned int nTracks = trackMap->size();
   unsigned int counter = 0;
@@ -254,15 +229,12 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
   }
   event_file_trailer_2(outFile);
   outFile.close();
-  if (vertexMap->size() == 0)
+
+  ++evtDisplayCounter;
+  if (evtDisplayCounter > maxEvtDisplays)
   {
     std::remove(outFileName.c_str());
   }
-
-  if ((nTracks >= m_min_tracks) && vertexMap->size() > 0)
-  {
-    std::cout << "For BCO " << std::to_string(triggerBCO) << " you have " << nTracks << " tracks, and " << vertexMap->size() << " vertices" << std:: endl;
-  } 
 
   L1_BCOs.clear();
 
@@ -273,6 +245,10 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int silicon_detector_analyser::End(PHCompositeNode *topNode)
 {
+  outRoot->Write();
+  outRoot->Close();
+  delete outRoot;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -399,17 +375,56 @@ void silicon_detector_analyser::addTrack(std::ofstream &json_file_track, SvtxTra
 {
   std::string addComma = lastTrack ? "     }" : "     },";
 
-  float x = aTrack->get_x();
-  float y = aTrack->get_y();
-  float z = aTrack->get_z();
-  float px = aTrack->get_silicon_seed()->get_px();
-  float py = aTrack->get_silicon_seed()->get_py();
-  float pz = aTrack->get_silicon_seed()->get_pz();
+  TrackSeed* silseed = aTrack->get_silicon_seed();
+  TVector2 LocalUse;
+  TVector3 ClusterWorld;
+
+  auto iter_local = silseed->begin_cluster_keys();
+
+  TrkrDefs::cluskey cluster_key = *iter_local;
+  layer = TrkrDefs::getLayer(cluster_key);
+  TrkrCluster *cluster = trktClusterContainer->findCluster(cluster_key);
+
+  localX = cluster->getLocalX();
+  localY = cluster->getLocalY();
+
+  LocalUse.SetX(localX);
+  LocalUse.SetY(localY);
+
+  auto surface = actsGeom->maps().getSurface(cluster_key, cluster);
+
+  CylinderGeom_Mvtx* layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeomMvtx->GetLayerGeom(layer));
+  ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
+
+  float x = ClusterWorld.X();
+  float y = ClusterWorld.Y();
+  float z = ClusterWorld.Z();
+
+  float scale = 1e6;
+  float px = scale*aTrack->get_px();
+  float py = scale*aTrack->get_py();
+  float pz = scale*aTrack->get_pz();
   int charge = aTrack->get_charge();
 
   json_file_track << "     {" << std::endl;
   json_file_track << "       \"color\": 16777215," << std::endl;
-  json_file_track << "       \"l\": 20," << std::endl;//" << length << "," << std::endl;
+  json_file_track << "       \"l\": 6," << std::endl;//" << length << "," << std::endl;
+  json_file_track << "       \"nh\": 6," << std::endl;
+  json_file_track << "       \"pxyz\": [" << std::endl;
+  json_file_track << "        " << -1*px << ","<< std::endl;// " << deltaX*scale << "," << std::endl;
+  json_file_track << "        " << -1*py << ","<< std::endl;//" << deltaY*scale << "," << std::endl;
+  json_file_track << "        " << -1*pz << ""<< std::endl;// " << deltaZ*scale << std::endl;
+  json_file_track << "       ]," << std::endl;
+  json_file_track << "       \"q\": " << charge << "," << std::endl;
+  json_file_track << "       \"xyz\": [" << std::endl;
+  json_file_track << "         " << x << ","<< std::endl;//" << maxHit[0] << ", " << std::endl;
+  json_file_track << "          " << y << ","<< std::endl;//" << maxHit[1] << ", " << std::endl;
+  json_file_track << "         " << z << ""<< std::endl;//" << maxHit[2] << std::endl;
+  json_file_track << "       ]" << std::endl;
+  json_file_track << "     }," << std::endl;
+  json_file_track << "     {" << std::endl;
+  json_file_track << "       \"color\": 16777215," << std::endl;
+  json_file_track << "       \"l\": 4," << std::endl;//" << length << "," << std::endl;
   json_file_track << "       \"nh\": 6," << std::endl;
   json_file_track << "       \"pxyz\": [" << std::endl;
   json_file_track << "        " << px << ","<< std::endl;// " << deltaX*scale << "," << std::endl;

@@ -72,9 +72,9 @@ class silicon_detector_analyser : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-  void setEventDisplayPath( std::string path ) { m_evt_display_path = path; }
+  void writeFile( const std::string &file ){ outRootName = file; }
 
-  void minTracks( int value ) { m_min_tracks = value; }
+  void setEventDisplayPath( std::string path ) { m_evt_display_path = path; }
 
   void setRunDate( std::string date ) { m_run_date = date; }
 
@@ -99,8 +99,24 @@ class silicon_detector_analyser : public SubsysReco
   PHG4CylinderGeomContainer *geantGeomIntt;
   MvtxEventInfo* mvtx_event_header = nullptr;
 
+  TFile* outRoot = nullptr;
+  TTree* outTree = nullptr;
+  std::string outRootName = "outputClusters.root";
+
   int m_runNumber = 0;
+  uint64_t triggerBCO = 0;
   std::vector<uint64_t> L1_BCOs;
+  float vertex_x = 0;
+  float vertex_y = 0;
+  float vertex_z = 0;
+  std::vector<uint64_t> strobe_BCOs;
+  std::vector<int> clusLayer;
+  std::vector<float> clusPhi;
+  std::vector<float> clusEta;
+  std::vector<unsigned int> clusSize;
+  std::vector<float> clusX;
+  std::vector<float> clusY;
+  std::vector<float> clusZ;
 
   int event = 0;
   int numberL1s = 0;
@@ -110,7 +126,9 @@ class silicon_detector_analyser : public SubsysReco
   float global[3] = {0};
   std::string m_evt_display_path = ".";
   std::string m_run_date = "2024-04-14";
-  unsigned int m_min_tracks = 6;
+
+  unsigned int evtDisplayCounter = 0;
+  unsigned int maxEvtDisplays = 10;
 };
 
 #endif // EVENTDISPLAYMAKER_H

@@ -14,7 +14,7 @@ pkginclude_HEADERS = \
   mvtx_standalone_cluster.h \
   event_display_maker.h \
   silicon_detector_analyser.h
-
+ 
 lib_LTLIBRARIES = \
   libeventdisplaymaker.la
 

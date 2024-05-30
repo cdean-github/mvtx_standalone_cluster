@@ -6,31 +6,13 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <vector>
 
-#include <TFile.h>
-#include <TTree.h>
-#include <TVector2.h>
-#include <TVector3.h>
-
-#include <mvtx/CylinderGeom_Mvtx.h>
-#include <intt/CylinderGeomIntt.h>
-#include <micromegas/CylinderGeomMicromegas.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-
-#include <micromegas/MicromegasDefs.h>
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/MvtxEventInfo.h>
-#include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include <ffarawobjects/Gl1RawHit.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 class PHCompositeNode;
 
@@ -77,49 +59,43 @@ class event_display_maker : public SubsysReco
 
   void setEventDisplayPath( std::string path ) { m_evt_display_path = path; }
 
-  void minMVTXClusters( int value ) { m_minMVTXClusters = value; }
-  void minINTTClusters( int value ) { m_minINTTClusters = value; }
-  void minTPCHits     ( int value ) { m_minTPCHits = value; }
-  void minTPOTClusters( int value ) { m_minTPOTClusters = value; }
-
   void setRunDate( std::string date ) { m_run_date = date; }
+
+  void setNEventDisplays( int nDisplays ) { maxEvtDisplays = nDisplays; }
+
+  void requirePV() { m_require_vertex = true; }
 
  private:
 
+  std::ofstream outFile;
+
   void event_file_start(std::ofstream &json_file_header, std::string date, int runid, uint64_t bco);
 
-  void event_file_trailer(std::ofstream &json_file_trailer, float minHit[3], float maxHit[3]);
+  void event_file_trailer_0(std::ofstream &json_file_trailer);
+  void event_file_trailer_1(std::ofstream &json_file_trailer);
+  void event_file_trailer_2(std::ofstream &json_file_trailer);
 
-  void addHit(std::ofstream &json_file_hit, bool &firstHit, float hit[3], float &minX, float &minY, float &minZ, float &maxX, float &maxY, float &maxZ, bool isMVTX);
+  void addHit(std::ofstream &json_file_hit, bool &firstHit, Acts::Vector3 hit);
+  void addTrack(std::ofstream &json_file_hit, SvtxTrack* aTrack, bool lastTrack);
+  void loopTrackClusters(bool isSilicon);
 
   std::string getDate();
 
-  //std::string exec(const char *cmd);
-
-  TrkrHitSetContainer *trkrHitSetContainer = nullptr;
   TrkrClusterContainer *trktClusterContainer = nullptr;
   ActsGeometry *actsGeom = nullptr;
-  PHG4CylinderGeomContainer *geantGeomMvtx;
-  PHG4CylinderGeomContainer *geantGeomIntt;
-  PHG4TpcCylinderGeomContainer *geantGeomTpc;
-  PHG4CylinderGeomContainer *geantGeomTpot;
-  MvtxEventInfo* mvtx_event_header = nullptr;
+  Gl1RawHit* gl1info = nullptr;
+  SvtxVertexMap* vertexMap = nullptr;
+  SvtxTrackMap* trackMap = nullptr;
 
   int m_runNumber = 0;
-  std::vector<uint64_t> L1_BCOs;
+  uint64_t triggerBCO = 0;
 
-  int event = 0;
-  int numberL1s = 0;
-  int layer = 0;
-  float localX = 0.;
-  float localY = 0.;
-  float global[3] = {0};
+  bool m_require_vertex = false;
   std::string m_evt_display_path = ".";
   std::string m_run_date = "2024-04-14";
-  int m_minMVTXClusters = 4;
-  int m_minINTTClusters = 2;
-  int m_minTPCHits = 40;
-  int m_minTPOTClusters = 1;
+
+  unsigned int evtDisplayCounter = 0;
+  unsigned int maxEvtDisplays = 10;
 };
 
 #endif // EVENTDISPLAYMAKER_H

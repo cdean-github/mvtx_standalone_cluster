@@ -15,6 +15,8 @@ int nEvents = 0;
 int nEventsWTrigger = 0;
 int nEventsWOccGreaterThan0p3 = 0;
 int nEventsWTriggerAndOccGreaterThan0p3 = 0;
+int nChips = 0;
+int nChipsWOccGreaterThan0p3 = 0;
 
 // Reference: https://github.com/sPHENIX-Collaboration/analysis/blob/master/TPC/DAQ/macros/prelimEvtDisplay/TPCEventDisplay.C
 //____________________________________________________________________________..
@@ -81,12 +83,12 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  trktClusterContainer = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
-  if (!trktClusterContainer)
-  {
-    std::cout << __FILE__ << "::" << __func__ << " - TRKR_CLUSTER missing, doing nothing." << std::endl;
-    exit(1);
-  }
+  //trktClusterContainer = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  //if (!trktClusterContainer)
+  //{
+  //  std::cout << __FILE__ << "::" << __func__ << " - TRKR_CLUSTER missing, doing nothing." << std::endl;
+  //  exit(1);
+  //}
 
   actsGeom = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!actsGeom)
@@ -143,7 +145,7 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
   std::ofstream outFile;
   bool firstHits = true;
   float minX = 0., minY = 0., minZ = 0., maxX = 0., maxY = 0., maxZ = 0.;
-  if (m_write_evt_display && trktClusterContainer->size() >= m_min_clusters)
+  if (m_write_evt_display)// && trktClusterContainer->size() >= m_min_clusters)
   {
     outFile.open(m_evt_display_path + "/EvtDisplay_" + m_runNumber + "_" + L1_BCOs[0] + ".json");
     event_file_start(outFile, m_run_date, m_runNumber, L1_BCOs[0]); 
@@ -166,10 +168,12 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
     auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeom->GetLayerGeom(layer));
     TVector2 LocalUse;
 
+    ++nChips;
     chip_hits = hitsetitr->second->size();
     chip_occupancy = (float) chip_hits / (512*1024);
     if (chip_occupancy*100 >= 0.3) //Take all clusters
     {
+      ++nChipsWOccGreaterThan0p3;
       if (!occAbove0p3)
       {
         occAbove0p3 = true;
@@ -282,7 +286,9 @@ std::cout << "MVTX hit analyser end" << std::endl;
 std::cout << "Number of events analysed: " << nEvents << std::endl;
 std::cout << "Number of events analysed with trigger: " << nEventsWTrigger << std::endl;
 std::cout << "Number of events analysed with occupancy above 0.3%: " << nEventsWOccGreaterThan0p3 << std::endl;
-std::cout << "Number of events analysed with trigger and occupancy above 0.3%:: " << nEventsWTriggerAndOccGreaterThan0p3 << std::endl;
+std::cout << "Number of events analysed with trigger and occupancy above 0.3%: " << nEventsWTriggerAndOccGreaterThan0p3 << std::endl;
+std::cout << "Number of chips with hits: " << nChips << std::endl;
+std::cout << "Number of chips with occupancy above 0.3%: " << nChipsWOccGreaterThan0p3 << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -398,3 +404,4 @@ void mvtx_standalone_cluster::event_file_trailer(std::ofstream &json_file_traile
   json_file_trailer << "}" << std::endl;
   json_file_trailer << "}" << std::endl;
 }
+

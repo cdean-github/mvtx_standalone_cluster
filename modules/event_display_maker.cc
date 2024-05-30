@@ -313,25 +313,16 @@ void event_display_maker::addTrack(std::ofstream &json_file_track, SvtxTrack* aT
        ++state_iter)
   {
     SvtxTrackState* tstate = state_iter->second;
-    length = tstate->get_pathlength();
-
+    length = std::max(tstate->get_pathlength(), length);
   }
 
   json_file_track << "     {" << std::endl;
   json_file_track << "       \"color\": 16776960," << std::endl;
   json_file_track << "       \"l\": " << length << "," << std::endl;
   json_file_track << "       \"nh\": 6," << std::endl;
-  json_file_track << "       \"pxyz\": [" << std::endl;
-  json_file_track << "        " << px << ","<< std::endl;
-  json_file_track << "        " << py << ","<< std::endl;
-  json_file_track << "        " << pz << ""<< std::endl;
-  json_file_track << "       ]," << std::endl;
+  json_file_track << "       \"pxyz\": [" << px << ", " << py << ", " << pz << "]," << std::endl;
   json_file_track << "       \"q\": " << charge << "," << std::endl;
-  json_file_track << "       \"xyz\": [" << std::endl;
-  json_file_track << "         " << x << ","<< std::endl;
-  json_file_track << "          " << y << ","<< std::endl;
-  json_file_track << "         " << z << ""<< std::endl;
-  json_file_track << "       ]" << std::endl;
+  json_file_track << "       \"xyz\": [" << x << ", " << y << ", " << z << "]" << std::endl;
   json_file_track << addComma << std::endl;
 }
 

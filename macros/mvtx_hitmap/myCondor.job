@@ -1,0 +1,12 @@
+Universe           = vanilla
+initialDir         = /sphenix/user/tmengel/MVTX/MvtxHitMap/mvtx_standalone_cluster/macros
+Executable         = $(initialDir)/runCombiner_Mvtx_hitmap.sh
+PeriodicHold       = (NumJobStarts>=1 && JobStatus == 1)
+request_memory     = 10GB
+Priority           = 20
+job_lease_duration = 3600
+Output             = $(initialDir)/logs/condor_MVTXPixelMap_$INT(run_number,%08d)_$(run_type)_$(nevents).out
+Error              = $(initialDir)/logs/condor_MVTXPixelMap_$INT(run_number,%08d)_$(run_type)_$(nevents).err
+Log                = /tmp/condor_MVTXPixelMap_$INT(run_number,%08d)_$(run_type)_$ENV(USER)_$(nevents).log
+Arguments          = $(run_number) $(run_type) $(nevents)
+Queue run_number, run_type nevents from $(initialDir)/runList.list

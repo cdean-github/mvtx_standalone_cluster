@@ -77,6 +77,7 @@ class event_display_maker : public SubsysReco
 
   void addHit(std::ofstream &json_file_hit, bool &firstHit, Acts::Vector3 hit);
   void addTrack(std::ofstream &json_file_hit, SvtxTrack* aTrack, bool lastTrack);
+  void writeHitToDisplay(TrkrDefs::cluskey clusterKey, bool &firstHit);
   void loopTrackClusters(bool isSilicon);
 
   std::string getDate();

@@ -4,6 +4,7 @@
 #include <fun4all/Fun4AllDstOutputManager.h>
 
 #include <fun4allraw/Fun4AllStreamingInputManager.h>
+#include <fun4all/Fun4AllRunNodeInputManager.h>
 #include <fun4allraw/InputManagerType.h>
 #include <fun4allraw/SingleMvtxPoolInput.h>
 
@@ -63,6 +64,13 @@ void Fun4All_Mvtx_Combiner(int nEvents = 0,
   rc->set_uint64Flag("TIMESTAMP", std::stoi(run_number));
   rc->set_IntFlag("RUNNUMBER", std::stoi(run_number));
 
+  std::string geofile = CDBInterface::instance()->getUrl("Tracking_Geometry");
+  Fun4AllRunNodeInputManager *ingeo = new Fun4AllRunNodeInputManager("GeoIn");
+  ingeo->AddFile(geofile);
+  se->registerInputManager(ingeo);
+
+  ACTSGEOM::ActsGeomInit();
+
   Fun4AllStreamingInputManager *in = new Fun4AllStreamingInputManager("Comb");
   in->Verbosity(1);
   int i = 0;
@@ -79,35 +87,24 @@ void Fun4All_Mvtx_Combiner(int nEvents = 0,
 
   if (runTrkrHits)
   {
-    MvtxCombinedRawDataDecoder *myUnpacker = new MvtxCombinedRawDataDecoder("myUnpacker");
-    myUnpacker->Verbosity(0);
-    se->registerSubsystem(myUnpacker);
+    Mvtx_HitUnpacking();
   }
 
   if (runTkrkClus) 
   {
-    Enable::MVTX = true;
-    Enable::INTT = true;
-    Enable::TPC = true;
-    Enable::MICROMEGAS = true;
-  
-    G4Init();
-    G4Setup();
-
-    TrackingInit();
     Mvtx_Clustering(); 
- 
+
     mvtx_standalone_cluster *myTester = new mvtx_standalone_cluster();
-    std::string clusterFileName = "outputClusters_" + run_number + ".root"; 
+    std::string clusterFileName = "outputClusters_" + run_number.substr(0, run_number.size()-1) + ".root"; 
     myTester->writeFile(clusterFileName);
-    myTester->writeEventDisplays(true);
+    myTester->writeEventDisplays(false);
     myTester->setEventDisplayPath(".");
     se->registerSubsystem(myTester);
   }
 
   if (writeOutputDST)
   {
-    std::string outputFile = "DST_mvtx_hits_" + run_number + ".root";
+    std::string outputFile = "DST_mvtx_hits_" + run_number.substr(0, run_number.size()-1) + ".root";
     Fun4AllOutputManager *out = new Fun4AllDstOutputManager("out", outputFile);
     if (stripRawHit)
     {

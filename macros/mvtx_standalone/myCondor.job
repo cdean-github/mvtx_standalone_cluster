@@ -1,9 +1,14 @@
 Universe           = vanilla
+concurrency_limits = CONCURRENCY_LIMIT_DEFAULT:2308
 initialDir         = /sphenix/user/cdean/public/mvtx_standalone_cluster/macros 
 Executable         = $(initialDir)/runCombiner_Mvtx_Combiner.sh
 PeriodicHold       = (NumJobStarts>=1 && JobStatus == 1)
 request_memory     = 6GB
 Priority           = 20
 job_lease_duration = 3600
+#logFile            = $(initialDir)/mvtx_standalone/logs/$(runNumber)
+#Output             = $(logFile).out
+#Error              = $(logFile).err
+#Log                = $(logFile).log
 Arguments          = $(runNumber) 
 Queue runNumber from list.runs 

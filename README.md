@@ -55,14 +55,12 @@ from the folder ```mvtx_standalone```
 
 ### Fun4All_Tracker_Combiner.C
 
-This is the second macro and was used to generate event displays with the MVTX, INTT, TPC and TPOT when we were taking cosmic data. It probably has little use until we have reconstructed tracks. When they exist, the package will be updated to be a full event display
+This macro will generate event displays, showing all cluters associated to tracks and will also show the tracks that have associated silicon seeds. You can see the event displays by loading them into [https://www.sphenix.bnl.gov/edisplay/](https://www.sphenix.bnl.gov/edisplay/)
 
 ### Fun4All_Silicon_Analyser.C
 
-This takes DSTs from the central production that contain Raw Hits from the MVTX and INTT (and TPOT if available). This will convert the raw hits into tracker hits, tracker clusters, tracklets and vertices (however the last two don't work well as we're still tuning the seeding and vertexing without the magnetic field). You can disable the seeding and vertexing in the macro by setting
-```c++
-bool runSeeding = false;
-```
+This takes DSTs from the central production that contain Raw Hits from the MVTX and INTT (and TPOT if available). This will convert the raw hits into tracker hits, tracker clusters, tracklets and vertices
+
 This macro will write out new DSTs which I've been storing under 
 ```
 /sphenix/tg/tg01/commissioning/MVTX/beam/

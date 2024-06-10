@@ -14,7 +14,7 @@ runnumber=$(printf "%08d" $1)
 
 for i in {0..5}
 do
-ls -1 /sphenix/lustre01/sphnxpro/commissioning/MVTX/cosmics/cosmics_mvtx${i}-${runnumber}-* > mvtx_standalone/input_lists/mvtx${i}_${runnumber}.list
+ls -1 /sphenix/lustre01/sphnxpro/physics/MVTX/physics/physics_mvtx${i}-${runnumber}-* > mvtx_standalone/input_lists/mvtx${i}_${runnumber}.list
 if [ ! -s mvtx_standalone/input_lists/mvtx${i}_${runnumber}.list ]
 then
   echo mvtx_standalone/input_lists/mvtx-flx${i}.list empty, removing it

@@ -46,11 +46,11 @@ int mvtx_standalone_cluster::Init(PHCompositeNode *topNode)
   outTree->Branch("layer", &layer, "layer/I");
   outTree->Branch("stave", &stave, "stave/I");
   outTree->Branch("chip", &chip, "chip/I");
-  outTree->Branch("localX", &localX);
-  outTree->Branch("localY", &localY);
-  outTree->Branch("globalX", &globalX);
-  outTree->Branch("globalY", &globalY);
-  outTree->Branch("globalZ", &globalZ);
+  //outTree->Branch("localX", &localX);
+  //outTree->Branch("localY", &localY);
+  //outTree->Branch("globalX", &globalX);
+  //outTree->Branch("globalY", &globalY);
+  //outTree->Branch("globalZ", &globalZ);
   //outTree->Branch("clusZSize", &clusZ);
   //outTree->Branch("clusPhiSize", &clusPhi);
   //outTree->Branch("clusSize", &clusSize);
@@ -171,7 +171,7 @@ int mvtx_standalone_cluster::process_event(PHCompositeNode *topNode)
     ++nChips;
     chip_hits = hitsetitr->second->size();
     chip_occupancy = (float) chip_hits / (512*1024);
-    if (chip_occupancy*100 >= 0.3) //Take all clusters
+    if (chip_occupancy*100 >= -1.) //Take all clusters
     {
       ++nChipsWOccGreaterThan0p3;
       if (!occAbove0p3)

@@ -96,7 +96,6 @@ int event_display_maker::process_event(PHCompositeNode *topNode)
   outFile.open(outFileName.c_str());
   m_run_date = getDate();
   event_file_start(outFile, m_run_date, m_runNumber, triggerBCO); 
-
   //First add the silicon clusters
   loopTrackClusters(true);
 
@@ -144,38 +143,66 @@ void event_display_maker::Print(const std::string &what) const
 {
 }
 
+void event_display_maker::writeHitToDisplay(TrkrDefs::cluskey clusterKey, bool &firstHit)
+{
+  TrkrCluster *cluster = trktClusterContainer->findCluster(clusterKey);
+  Acts::Vector3 global = actsGeom->getGlobalPosition(clusterKey, cluster);
+  addHit(outFile, firstHit, global);
+
+}
+
 void event_display_maker::loopTrackClusters(bool isSilicon)
 {
   bool firstHits = true;
   for (auto& iter : *trackMap)
   {
-    for (auto state_iter = iter.second->begin_states();
-         state_iter != iter.second->end_states();
-         ++state_iter)
+    SvtxTrack *aTrack = iter.second;
+
+    if (aTrack->size_states() == 1)
     {
-      SvtxTrackState* tstate = state_iter->second;
-      if (tstate->get_pathlength() != 0) //The first track state is an extrapolation so has no cluster
+      TrackSeed *silseeds = aTrack->get_silicon_seed();
+      if (silseeds)
       {
-        auto stateckey = tstate->get_cluskey();
-        uint8_t layer = TrkrDefs::getLayer(stateckey);
-
-        int maxSiliconLayer = 6;
-        bool writeHit = false;
-
-        if (isSilicon)
+        TrackSeed *seed = isSilicon ? aTrack->get_silicon_seed() : aTrack->get_tpc_seed();
+        if (seed)
         {
-          writeHit = layer <= maxSiliconLayer ? true : false;
+          for (auto cluster_iter = seed->begin_cluster_keys();
+               cluster_iter != seed->end_cluster_keys(); ++cluster_iter)
+          {
+            const auto &stateckey = *cluster_iter;
+            writeHitToDisplay(stateckey, firstHits);
+          }
         }
-        else
+      }
+    }
+    else
+    {
+      for (auto state_iter = aTrack->begin_states();
+           state_iter != aTrack->end_states();
+           ++state_iter)
+      {
+        SvtxTrackState* tstate = state_iter->second;
+        if (tstate->get_pathlength() != 0) //The first track state is an extrapolation so has no cluster
         {
-          writeHit = layer > maxSiliconLayer ? true : false;
-        }
- 
-        if (writeHit)
-        {
-          TrkrCluster *cluster = trktClusterContainer->findCluster(stateckey);
-          Acts::Vector3 global = actsGeom->getGlobalPosition(stateckey, cluster);      
-          addHit(outFile, firstHits, global);
+          auto stateckey = tstate->get_cluskey();
+          uint8_t layer = TrkrDefs::getLayer(stateckey);
+  
+          int maxSiliconLayer = 6;
+          bool writeHit = false;
+  
+          if (isSilicon)
+          {
+            writeHit = layer <= maxSiliconLayer ? true : false;
+          }
+          else
+          {
+            writeHit = layer > maxSiliconLayer ? true : false;
+          }
+   
+          if (writeHit)
+          {
+            writeHitToDisplay(stateckey, firstHits);
+          }
         }
       }
     }
@@ -308,18 +335,59 @@ void event_display_maker::addTrack(std::ofstream &json_file_track, SvtxTrack* aT
   int charge = aTrack->get_charge();
   float length = 0;
 
-  for (auto state_iter = aTrack->begin_states();
-       state_iter != aTrack->end_states();
-       ++state_iter)
+  if (aTrack->size_states() == 1)
   {
-    SvtxTrackState* tstate = state_iter->second;
-    length = std::max(tstate->get_pathlength(), length);
+    float previousX = 0, previousY = 0, previousZ = 0;
+    TrackSeed *silseed = aTrack->get_silicon_seed();
+    TrackSeed *tpcseed = aTrack->get_tpc_seed();
+    if (silseed)
+    {
+      for (auto cluster_iter = silseed->begin_cluster_keys();
+           cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &stateckey = *cluster_iter;
+        TrkrCluster *cluster = trktClusterContainer->findCluster(stateckey);
+        Acts::Vector3 global = actsGeom->getGlobalPosition(stateckey, cluster);
+        length += sqrt(pow(global.x() - previousX, 2) + pow(global.y() - previousY, 2) + pow(global.z() - previousZ, 2));
+        previousX = global.x();
+        previousY = global.y();
+        previousZ = global.z();
+      }
+    }
+    if (tpcseed)
+    {
+      for (auto cluster_iter = tpcseed->begin_cluster_keys();
+           cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &stateckey = *cluster_iter;
+        TrkrCluster *cluster = trktClusterContainer->findCluster(stateckey);
+        Acts::Vector3 global = actsGeom->getGlobalPosition(stateckey, cluster);
+        length += sqrt(pow(global.x() - previousX, 2) + pow(global.y() - previousY, 2) + pow(global.z() - previousZ, 2));
+        previousX = global.x();
+        previousY = global.y();
+        previousZ = global.z();
+      }
+    }
+    
   }
+  else
+  {
+    for (auto state_iter = aTrack->begin_states();
+         state_iter != aTrack->end_states();
+         ++state_iter)
+    {
+      SvtxTrackState* tstate = state_iter->second;
+      length = std::max(tstate->get_pathlength(), length);
+    }
+  }
+
+  TrackSeed *silseeds = aTrack->get_silicon_seed();
+  if (!silseeds) length = 0;
 
   json_file_track << "     {" << std::endl;
   json_file_track << "       \"color\": 16776960," << std::endl;
   json_file_track << "       \"l\": " << length << "," << std::endl;
-  json_file_track << "       \"nh\": 6," << std::endl;
+  json_file_track << "       \"nh\": 60," << std::endl;
   json_file_track << "       \"pxyz\": [" << px << ", " << py << ", " << pz << "]," << std::endl;
   json_file_track << "       \"q\": " << charge << "," << std::endl;
   json_file_track << "       \"xyz\": [" << x << ", " << y << ", " << z << "]" << std::endl;

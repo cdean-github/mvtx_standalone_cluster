@@ -223,7 +223,8 @@ void event_display_maker::event_file_start(std::ofstream &json_file_header, std:
   json_file_header << " \"runstats\": [\"sPHENIX Internal\"," << std::endl;
   json_file_header << "\"200 GeV pp\"," << std::endl;
   json_file_header << "\"" << date << ", Run " << runid << "\"," << std::endl;
-  json_file_header << "\"BCO: " << bco <<"\"]  " << std::endl;
+  json_file_header << "\"BCO: " << bco <<"\",  " << std::endl;
+  json_file_header << "\"No distortion corrections\"]  " << std::endl;
   json_file_header << "    }," << std::endl;
   json_file_header << "" << std::endl;
   json_file_header << "    \"META\": {" << std::endl;
@@ -382,7 +383,8 @@ void event_display_maker::addTrack(std::ofstream &json_file_track, SvtxTrack* aT
   }
 
   TrackSeed *silseeds = aTrack->get_silicon_seed();
-  if (!silseeds) length = 0;
+  short whichCrossing = aTrack->get_crossing();
+  if (!silseeds || (silseeds && whichCrossing != 1)) length = 0;
 
   json_file_track << "     {" << std::endl;
   json_file_track << "       \"color\": 16776960," << std::endl;

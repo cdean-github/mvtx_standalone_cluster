@@ -15,7 +15,8 @@ pkginclude_HEADERS = \
   event_display_maker.h \
   silicon_detector_analyser.h \
   mvtx_file_finder.h \
-  mvtx_hit_map.h 
+  mvtx_hit_map.h \
+  latency_analyzer.h
  
 lib_LTLIBRARIES = \
   libeventdisplaymaker.la
@@ -25,7 +26,8 @@ libeventdisplaymaker_la_SOURCES = \
   event_display_maker.cc \
   silicon_detector_analyser.cc \
   mvtx_file_finder.cc \
-  mvtx_hit_map.cc
+  mvtx_hit_map.cc \
+  latency_analyzer.cc
 
 libeventdisplaymaker_la_LIBADD = \
   -lphool \
@@ -36,6 +38,8 @@ libeventdisplaymaker_la_LIBADD = \
   -lmicromegas \
   -lglobalvertex \
   -ltrackbase_historic_io \
+  -lcalotrigger \
+  -lphg4hit \
   -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc

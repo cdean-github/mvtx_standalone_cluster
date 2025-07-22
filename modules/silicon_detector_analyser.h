@@ -14,7 +14,9 @@
 #include <TVector3.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 #include <intt/CylinderGeomIntt.h>
+#include <intt/CylinderGeomInttHelper.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/MvtxDefs.h>

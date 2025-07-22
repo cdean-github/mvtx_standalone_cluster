@@ -8,6 +8,7 @@
 #include <string>
 
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
@@ -84,7 +85,8 @@ class event_display_maker : public SubsysReco
 
   TrkrClusterContainer *trktClusterContainer = nullptr;
   ActsGeometry *actsGeom = nullptr;
-  Gl1RawHit* gl1info = nullptr;
+  Gl1Packet* gl1info = nullptr;
+  //Gl1RawHit* gl1info = nullptr;
   SvtxVertexMap* vertexMap = nullptr;
   SvtxTrackMap* trackMap = nullptr;
 

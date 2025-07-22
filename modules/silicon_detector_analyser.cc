@@ -185,8 +185,8 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
       {
         case TrkrDefs::TrkrId::mvtxId:
         {
-          CylinderGeom_Mvtx* layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeomMvtx->GetLayerGeom(layer));
-          ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
+          //CylinderGeom_Mvtx* layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeomMvtx->GetLayerGeom(layer));
+          ClusterWorld = CylinderGeom_MvtxHelper::get_world_from_local_coords(surface, actsGeom, LocalUse);
 
           clusLayer.push_back(layer);
           clusPhi.push_back(iter.second->get_phi());
@@ -200,8 +200,8 @@ int silicon_detector_analyser::process_event(PHCompositeNode *topNode)
         }
         case TrkrDefs::TrkrId::inttId:
         {
-          CylinderGeomIntt* layergeom = dynamic_cast<CylinderGeomIntt *>(geantGeomIntt->GetLayerGeom(layer));
-          ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
+          //CylinderGeomIntt* layergeom = dynamic_cast<CylinderGeomIntt *>(geantGeomIntt->GetLayerGeom(layer));
+          ClusterWorld = CylinderGeomInttHelper::get_world_from_local_coords(surface, actsGeom, LocalUse);
           break;
         }
         default:
@@ -393,8 +393,8 @@ void silicon_detector_analyser::addTrack(std::ofstream &json_file_track, SvtxTra
 
   auto surface = actsGeom->maps().getSurface(cluster_key, cluster);
 
-  CylinderGeom_Mvtx* layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeomMvtx->GetLayerGeom(layer));
-  ClusterWorld = layergeom->get_world_from_local_coords(surface, actsGeom, LocalUse);
+  //CylinderGeom_Mvtx* layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geantGeomMvtx->GetLayerGeom(layer));
+  ClusterWorld = CylinderGeom_MvtxHelper::get_world_from_local_coords(surface, actsGeom, LocalUse);
 
   float x = ClusterWorld.X();
   float y = ClusterWorld.Y();

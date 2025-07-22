@@ -9,8 +9,12 @@
 
 #include <boost/format.hpp>
 #include <boost/math/special_functions/sign.hpp>
+
+#include <trackbase_historic/TrackSeedContainer.h>
 // Reference: https://github.com/sPHENIX-Collaboration/analysis/blob/master/TPC/DAQ/macros/prelimEvtDisplay/TPCEventDisplay.C
 //____________________________________________________________________________..
+int nTracks = 0;
+
 event_display_maker::event_display_maker(const std::string &name):
  SubsysReco(name)
 {
@@ -55,14 +59,18 @@ int event_display_maker::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  gl1info = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  gl1info = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1info)
   {
-    std::cout << __FILE__ << "::" << __func__ << " - GL1RAWHIT missing, doing nothing." << std::endl;
-    exit(1);
+    gl1info = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    if (!gl1info)
+    {
+      std::cout << __FILE__ << "::" << __func__ << " - GL1Packet missing, doing nothing." << std::endl;
+      exit(1);
+    }
   }
 
-  triggerBCO = gl1info->get_bco(); 
+  triggerBCO = gl1info->getBunchNumber();//gl1info->get_bco(); 
 
   trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!trackMap)
@@ -121,6 +129,8 @@ int event_display_maker::process_event(PHCompositeNode *topNode)
   {
     std::remove(outFileName.c_str());
   }
+
+  nTracks = 0;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -297,6 +307,9 @@ void event_display_maker::event_file_trailer_2(std::ofstream &json_file_trailer)
   json_file_trailer << "   ]" << std::endl;
   json_file_trailer << "}" << std::endl;
   json_file_trailer << "}" << std::endl;
+  json_file_trailer << "{" << std::endl;
+  json_file_trailer << "  \"_nTracks\": " << nTracks << std::endl;
+  json_file_trailer << "}" << std::endl;
 }
 
 void event_display_maker::addHit(std::ofstream &json_file_hit, bool &firstHit, Acts::Vector3 hit)
@@ -336,6 +349,8 @@ void event_display_maker::addTrack(std::ofstream &json_file_track, SvtxTrack* aT
   int charge = aTrack->get_charge();
   float length = 0;
 
+  int nTPCseeds = 0;
+
   if (aTrack->size_states() == 1)
   {
     float previousX = 0, previousY = 0, previousZ = 0;
@@ -367,6 +382,7 @@ void event_display_maker::addTrack(std::ofstream &json_file_track, SvtxTrack* aT
         previousX = global.x();
         previousY = global.y();
         previousZ = global.z();
+        ++nTPCseeds;
       }
     }
     
@@ -379,12 +395,15 @@ void event_display_maker::addTrack(std::ofstream &json_file_track, SvtxTrack* aT
     {
       SvtxTrackState* tstate = state_iter->second;
       length = std::max(tstate->get_pathlength(), length);
+      ++nTPCseeds;
     }
   }
 
-  TrackSeed *silseeds = aTrack->get_silicon_seed();
-  short whichCrossing = aTrack->get_crossing();
-  if (!silseeds || (silseeds && whichCrossing != 1)) length = 0;
+  //TrackSeed *silseeds = aTrack->get_silicon_seed();
+  //short whichCrossing = aTrack->get_crossing();
+  //if (!silseeds || (silseeds && whichCrossing != 1)) length = 0;
+  if (nTPCseeds < 25) length = 0;
+  else ++nTracks;
 
   json_file_track << "     {" << std::endl;
   json_file_track << "       \"color\": 16776960," << std::endl;

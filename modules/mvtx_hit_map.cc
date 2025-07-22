@@ -60,7 +60,6 @@ int mvtx_hit_map::process_event(PHCompositeNode *topNode)
     }
 
    
-
     MvtxEventInfov2* mvtx_event_header = findNode::getClass<MvtxEventInfov2>(topNode, "MVTXEVENTHEADER");
     if (!mvtx_event_header)
     {
@@ -82,7 +81,6 @@ int mvtx_hit_map::process_event(PHCompositeNode *topNode)
     event = f4a_event_counter;
     n_L1s = mvtx_event_header->get_number_L1s();
     n_strobe_BCOs = strobe_BCOs.size();
-
 
     // clear hit vectors
     layer = -1;
@@ -132,7 +130,6 @@ int mvtx_hit_map::process_event(PHCompositeNode *topNode)
 //_____________________________________________________________________
 int mvtx_hit_map::End(PHCompositeNode * /*topNode*/)
 {
-
   PHTFileServer::get().cd(m_output_filename);
   PHTFileServer::get().write(m_output_filename);
   std::cout << "Hits::EndRun - Done" << std::endl;

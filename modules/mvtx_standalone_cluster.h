@@ -14,6 +14,7 @@
 #include <TVector3.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/MvtxDefs.h>
@@ -69,12 +70,12 @@ class mvtx_standalone_cluster : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-  void event_file_start(std::ofstream &jason_file_header, std::string date, int runid, int bco);
+  //void event_file_start(std::ofstream &jason_file_header, std::string date, int runid, int bco);
 
-  void event_file_trailer(std::ofstream &json_file_trailer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+  //void event_file_trailer(std::ofstream &json_file_trailer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
 
   void writeFile( const std::string &file ){ outFileName = file; }
-
+/*
   void writeEventDisplays( bool value ) { m_write_evt_display = value; }
 
   void setEventDisplayPath( std::string path ) { m_evt_display_path = path; }
@@ -82,8 +83,9 @@ class mvtx_standalone_cluster : public SubsysReco
   void setMinClusters( unsigned int value ) { m_min_clusters = value; }
 
   void setRunDate ( std::string date ) { m_run_date = date; }
-
+*/
  private:
+  std::string to_string_with_precision(const float a_value, const int n);
   int f4aCounter = 0; 
 
   TrkrHitSetContainerv1 *trkrHitSetContainer = nullptr;
@@ -111,18 +113,18 @@ class mvtx_standalone_cluster : public SubsysReco
   std::vector<float> globalX;
   std::vector<float> globalY;
   std::vector<float> globalZ;
+  std::vector<float> globalPhi;
   std::vector<float> clusZ;
   std::vector<float> clusPhi;
   std::vector<unsigned int> clusSize;
   float chip_occupancy = 0.;
   int chip_hits = 0.;
-
+/*
   bool m_write_evt_display = false;
   std::string m_evt_display_path = ".";
   unsigned int m_min_clusters = 6;
   std::string m_run_date = "2024-04-09";
+*/
 };
 
 #endif // MVTXSTANDALONECLUSTER_H
-
-
